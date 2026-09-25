@@ -1,0 +1,15 @@
+node_modules
+.next
+.git
+.gitignore
+*.md
+docs
+scripts
+.env*
+!.env.example
+docker-compose.yml
+Dockerfile
+.dockerignore
+.vscode
+.idea
+*.log

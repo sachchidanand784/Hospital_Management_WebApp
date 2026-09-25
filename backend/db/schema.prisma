@@ -1,0 +1,532 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  OWNER
+  DOCTOR
+  RECEPTION
+  OPTOMETRIST
+  PHARMACY
+  OPTICAL
+  OT
+}
+
+enum DoctorVerificationStatus {
+  PENDING
+  VERIFIED
+  DECLINED
+  SUSPENDED
+}
+
+enum AppointmentType {
+  SPECIFIC
+  GENERAL
+  WALKIN
+  EMERGENCY
+  FOLLOWUP
+}
+
+enum AppointmentStatus {
+  BOOKED
+  CONFIRMED
+  CHECKED_IN
+  WAITING
+  IN_CONSULTATION
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+  NO_SHOW
+}
+
+enum QueueStatus {
+  OPEN
+  PAUSED
+  CLOSED
+}
+
+enum EmergencySeverity {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum EmergencyStatus {
+  NEW
+  ACKNOWLEDGED
+  CONTACTED
+  ARRIVED
+  UNDER_TREATMENT
+  CLOSED
+}
+
+enum OpticalCategory {
+  FRAME
+  LENS
+  SUNGLASS
+  CONTACT_LENS
+  ACCESSORY
+}
+
+enum OpticalOrderStatus {
+  REQUESTED
+  MEASURED
+  ORDERED
+  IN_PROGRESS
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum SurgeryStatus {
+  ADVISED
+  SCHEDULED
+  PRE_OP_DONE
+  IN_SURGERY
+  COMPLETED
+  POSTPONED
+  CANCELLED
+}
+
+model Hospital {
+  id               String            @id @default(uuid())
+  name_en          String
+  name_hi          String
+  address_en       String
+  address_hi       String
+  phones           String[]
+  email            String
+  logoUrl          String?
+  emergencyPhone   String
+  about_en         String
+  about_hi         String
+  emergency24x7    Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  timings          HospitalTiming[]
+  holidays         HospitalHoliday[]
+  users            User[]
+  doctors          Doctor[]
+  services         Service[]
+  appointments     Appointment[]
+  queues           Queue[]
+  emergencyRequests EmergencyRequest[]
+  auditLogs        AuditLog[]
+}
+
+model HospitalTiming {
+  id          String   @id @default(uuid())
+  hospitalId  String
+  hospital    Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  weekday     Int      // 0=Sun, 1=Mon, ..., 6=Sat
+  openTime    String   // "09:00"
+  closeTime   String   // "17:00"
+  isClosed    Boolean  @default(false)
+}
+
+model HospitalHoliday {
+  id                 String   @id @default(uuid())
+  hospitalId         String
+  hospital           Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  date               DateTime
+  reason_en          String
+  reason_hi          String
+  emergencyAvailable Boolean  @default(true)
+}
+
+model User {
+  id                 String      @id @default(uuid())
+  hospitalId         String
+  hospital           Hospital    @relation(fields: [hospitalId], references: [id])
+  role               Role
+  email              String      @unique
+  mobile             String      @unique
+  passwordHash       String
+  status             String      @default("ACTIVE") // ACTIVE, INACTIVE, SUSPENDED
+  language           String      @default("hi")
+  lastLogin          DateTime?
+  mustChangePassword Boolean     @default(false)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  doctorProfile      Doctor?
+  auditLogs          AuditLog[]
+}
+
+model Doctor {
+  id                 String                   @id @default(uuid())
+  userId             String                   @unique
+  user               User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hospitalId         String
+  hospital           Hospital                 @relation(fields: [hospitalId], references: [id])
+  fullName           String
+  gender             String
+  mobile             String
+  email              String
+  qualification      String
+  experienceYears    Int
+  consultationFee    Float                    @default(0)
+  bio_en             String?
+  bio_hi             String?
+  photoUrl           String?
+  verificationStatus DoctorVerificationStatus @default(PENDING)
+  verifiedBy         String?
+  verifiedAt         DateTime?
+  declineReason      String?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  specializations    DoctorSpecialization[]
+  weeklySchedules    DoctorWeeklySchedule[]
+  dateOverrides      DoctorDateOverride[]
+  leaves             DoctorLeave[]
+  appointments       Appointment[]
+  consultations      Consultation[]
+  surgeries          Surgery[]
+}
+
+model Specialization {
+  id          String                 @id @default(uuid())
+  name_en     String
+  name_hi     String
+  icon        String?
+  active      Boolean                @default(true)
+  doctors     DoctorSpecialization[]
+}
+
+model DoctorSpecialization {
+  doctorId         String
+  specializationId String
+  doctor           Doctor         @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  specialization   Specialization @relation(fields: [specializationId], references: [id], onDelete: Cascade)
+
+  @@id([doctorId, specializationId])
+}
+
+model Service {
+  id           String           @id @default(uuid())
+  hospitalId   String
+  hospital     Hospital         @relation(fields: [hospitalId], references: [id])
+  name_en      String
+  name_hi      String
+  desc_en      String
+  desc_hi      String
+  icon         String?
+  active       Boolean          @default(true)
+  feeMode      String           @default("FIXED")
+  defaultFee   Float            @default(0)
+  problems     ServiceProblem[]
+  appointments Appointment[]
+}
+
+model ServiceProblem {
+  id           String        @id @default(uuid())
+  serviceId    String
+  service      Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  name_en      String
+  name_hi      String
+  redFlag      Boolean       @default(false)
+  appointments Appointment[]
+}
+
+model FeeRule {
+  id            String    @id @default(uuid())
+  serviceId     String?
+  doctorId      String?
+  dayOfWeek     Int?      // 0-6
+  feeType       String    // FREE, FIXED
+  amount        Float     @default(0)
+  label_en      String
+  label_hi      String
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+}
+
+model DoctorWeeklySchedule {
+  id              String   @id @default(uuid())
+  doctorId        String
+  doctor          Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  weekday         Int      // 0-6
+  startTime       String   // "09:00"
+  endTime         String   // "17:00"
+  slotDurationMin Int      @default(20)
+  capacityPerSlot Int      @default(3)
+  breakStart      String?  // "13:00"
+  breakEnd        String?  // "14:00"
+  active          Boolean  @default(true)
+}
+
+model DoctorDateOverride {
+  id              String   @id @default(uuid())
+  doctorId        String
+  doctor          Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  date            DateTime
+  startTime       String
+  endTime         String
+  slotDurationMin Int      @default(20)
+  capacityPerSlot Int      @default(3)
+}
+
+model DoctorLeave {
+  id        String   @id @default(uuid())
+  doctorId  String
+  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  startDate DateTime
+  endDate   DateTime
+  reason    String?
+}
+
+model Patient {
+  id           String        @id @default(uuid())
+  uhid         String        @unique // PRY-2026-000123
+  name         String
+  age          Int?
+  dob          DateTime?
+  gender       String
+  mobile       String
+  address      String?
+  language     String        @default("hi")
+  consentAt    DateTime      @default(now())
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  appointments Appointment[]
+  opticalOrders OpticalOrder[]
+  surgeries    Surgery[]
+}
+
+model Queue {
+  id                String        @id @default(uuid())
+  hospitalId        String
+  hospital          Hospital      @relation(fields: [hospitalId], references: [id])
+  doctorId          String?
+  serviceId         String?
+  date              DateTime
+  tokenPrefix       String        @default("A") // A, B, W, E, etc.
+  currentServingSeq Int           @default(0)
+  status            QueueStatus   @default(OPEN)
+  appointments      Appointment[]
+
+  @@unique([hospitalId, doctorId, serviceId, date])
+}
+
+model Appointment {
+  id                  String             @id @default(uuid())
+  appointmentCode    String             @unique // APPT-2026-9812
+  hospitalId          String
+  hospital            Hospital           @relation(fields: [hospitalId], references: [id])
+  patientId           String
+  patient             Patient            @relation(fields: [patientId], references: [id])
+  serviceId           String
+  service             Service            @relation(fields: [serviceId], references: [id])
+  problemId           String?
+  problem             ServiceProblem?    @relation(fields: [problemId], references: [id])
+  doctorId            String?
+  doctor              Doctor?            @relation(fields: [doctorId], references: [id])
+  queueId             String?
+  queue               Queue?             @relation(fields: [queueId], references: [id])
+  type                AppointmentType    @default(SPECIFIC)
+  date                DateTime
+  slotStart           String
+  slotEnd             String
+  tokenSeq            Int
+  tokenLabel          String             // e.g. A-018
+  status              AppointmentStatus  @default(BOOKED)
+  priority            Boolean            @default(false)
+  source              String             @default("ONLINE")
+  notes               String?
+  cancellationReason  String?
+  rescheduledFromId   String?
+  checkedInAt         DateTime?
+  calledAt            DateTime?
+  consultStartAt      DateTime?
+  consultEndAt        DateTime?
+  feeShown            Float              @default(0)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  eyeExamination      EyeExamination?
+  consultation        Consultation?
+  statusHistory       AppointmentStatusHistory[]
+
+  @@unique([queueId, tokenSeq])
+}
+
+model AppointmentStatusHistory {
+  id            String            @id @default(uuid())
+  appointmentId String
+  appointment   Appointment       @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  fromStatus    AppointmentStatus
+  toStatus      AppointmentStatus
+  changedBy     String?
+  notes         String?
+  createdAt     DateTime          @default(now())
+}
+
+model EyeExamination {
+  id                 String      @id @default(uuid())
+  appointmentId      String      @unique
+  appointment        Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  technicianId       String
+  distanceVisionRight String?
+  distanceVisionLeft  String?
+  nearVisionRight     String?
+  nearVisionLeft      String?
+  sphRight           Float?
+  cylRight           Float?
+  axisRight          Int?
+  addRight           Float?
+  sphLeft            Float?
+  cylLeft            Float?
+  axisLeft           Int?
+  addLeft            Float?
+  pd                 Float?
+  iopRight           Float?
+  iopLeft            Float?
+  notes              String?
+  sharedWithDoctorAt DateTime?
+  createdAt          DateTime    @default(now())
+}
+
+model Consultation {
+  id             String        @id @default(uuid())
+  appointmentId String        @unique
+  appointment    Appointment   @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  doctorId       String
+  doctor         Doctor        @relation(fields: [doctorId], references: [id])
+  notes          String
+  findings       String
+  diagnosis      String
+  treatmentPlan  String
+  testsAdvised   String?
+  surgeryAdvised Boolean       @default(false)
+  followUpDate   DateTime?
+  aiDraftUsed    Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  prescriptions  Prescription[]
+}
+
+model Prescription {
+  id             String             @id @default(uuid())
+  consultationId String
+  consultation   Consultation       @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  instructions_en String?
+  instructions_hi String?
+  createdAt      DateTime           @default(now())
+  items          PrescriptionItem[]
+}
+
+model PrescriptionItem {
+  id             String       @id @default(uuid())
+  prescriptionId String
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  medicineName   String
+  dosage         String       // e.g. "1 drop"
+  frequency      String       // e.g. "3 times daily"
+  duration       String       // e.g. "7 days"
+  eye            String       // RIGHT, LEFT, BOTH
+  instructions   String?
+}
+
+model Medicine {
+  id          String   @id @default(uuid())
+  name        String
+  form        String   // Drops, Ointment, Tablet
+  strength    String
+  stockStatus String   @default("IN_STOCK") // IN_STOCK, LOW, OUT
+  quantity    Int      @default(100)
+  shelf       String?
+  active      Boolean  @default(true)
+}
+
+model OpticalProduct {
+  id           String                @id @default(uuid())
+  name_en      String
+  name_hi      String
+  desc_en      String
+  desc_hi      String
+  category     OpticalCategory       @default(FRAME)
+  brand        String
+  frameType    String?
+  displayPrice Float?
+  availability String                @default("AVAILABLE")
+  tags         String[]
+  featured     Boolean               @default(false)
+  active       Boolean               @default(true)
+  createdAt    DateTime              @default(now())
+  images       OpticalProductImage[]
+}
+
+model OpticalProductImage {
+  id         String         @id @default(uuid())
+  productId  String
+  product    OpticalProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url        String
+  altText_en String?
+  altText_hi String?
+  orderIndex Int            @default(0)
+}
+
+model OpticalOrder {
+  id           String             @id @default(uuid())
+  patientId    String
+  patient      Patient            @relation(fields: [patientId], references: [id])
+  orderType    String             // NEW_GLASSES, FRAME, LENS_REPLACEMENT
+  status       OpticalOrderStatus @default(REQUESTED)
+  notes        String?
+  promisedDate DateTime?
+  createdAt    DateTime           @default(now())
+}
+
+model Surgery {
+  id             String        @id @default(uuid())
+  patientId      String
+  patient        Patient       @relation(fields: [patientId], references: [id])
+  doctorId       String
+  doctor         Doctor        @relation(fields: [doctorId], references: [id])
+  type           String
+  eye            String        // RIGHT, LEFT, BOTH
+  scheduledDate  DateTime
+  otRoom         String
+  status         SurgeryStatus @default(SCHEDULED)
+  preOpChecked   Boolean       @default(false)
+  postOpNotes    String?
+  createdAt      DateTime      @default(now())
+}
+
+model EmergencyRequest {
+  id          String            @id @default(uuid())
+  hospitalId  String
+  hospital    Hospital          @relation(fields: [hospitalId], references: [id])
+  name        String
+  mobile      String
+  problemType String
+  description String
+  status      EmergencyStatus   @default(NEW)
+  aiSeverity  EmergencySeverity @default(HIGH)
+  aiReason    String?
+  handledBy   String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id])
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  role       String
+  action     String
+  entity     String
+  entityId   String?
+  details    String?
+  ipAddress  String?
+  at         DateTime @default(now())
+}
+
+model Setting {
+  key   String @id
+  value String // JSON encoded setting
+}

@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: #0A5EB0;
+    --primary-dark: #0B2545;
+    --accent: #13A89E;
+    --bg: #F5F9FC;
+    --surface: #FFFFFF;
+    --text: #12263A;
+    --muted: #5B7083;
+    --border: #DCE6EE;
+    --success: #2E9E6B;
+    --warning: #F5A524;
+    --danger: #D64545;
+    --emergency: #C62828;
+    --font-scale: 1;
+  }
+
+  [data-theme="high-contrast"] {
+    --bg: #000000;
+    --surface: #121212;
+    --text: #FFFFFF;
+    --muted: #E0E0E0;
+    --border: #FFFFFF;
+    --primary: #00E5FF;
+    --primary-dark: #00B0FF;
+    --accent: #00FFC2;
+    --emergency: #FF1744;
+  }
+
+  html {
+    font-family: 'Inter', 'Noto Sans Devanagari', sans-serif;
+    font-size: calc(16px * var(--font-scale));
+    background-color: var(--bg);
+    color: var(--text);
+    scroll-behavior: smooth;
+  }
+
+  /* Devanagari line-height requirement >= 1.6 */
+  [lang="hi"] body, :lang(hi) {
+    font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
+    line-height: 1.65;
+  }
+}
+
+.bg-hospital {
+  background-color: var(--bg);
+}
+
+.surface-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+}
+
+/* Accessibility Focus Ring */
+*:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
