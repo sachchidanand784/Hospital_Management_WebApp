@@ -13,7 +13,8 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "test": "vitest run",
-    "test:all": "npm run typecheck && npm run lint && npm run i18n:check && npm run test"
+    "test:all": "npm run typecheck && npm run lint && npm run i18n:check && npm run test",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",
