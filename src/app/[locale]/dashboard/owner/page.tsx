@@ -11,6 +11,7 @@ import {
   Building, Phone, Mail, Stethoscope, Trash2, Edit, PlusCircle,
   BarChart3, Megaphone, FileText, Lock, LogOut, Search, Filter, Bell,
 } from 'lucide-react';
+import { getEmergencyRequests, updateEmergencyStatus } from '@/actions/emergency';
 
 type TabType = 'OVERVIEW' | 'DOCTORS' | 'STAFF' | 'SERVICES' | 'APPOINTMENTS' | 'EMERGENCY' | 'HOSPITAL' | 'REPORTS';
 
@@ -53,12 +54,32 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
     { id: 'APT-1006', token: 'C-001', patient: 'Anita Pandey', doctor: 'Dr. Rajeshwar Patel', service: 'Glaucoma Screening', status: 'NO_SHOW', date: '2026-09-25', time: '09:00 AM' },
   ]);
 
-  // Emergency Alerts Demo
-  const [emergencyAlerts] = useState([
-    { id: 'EMR-01', name: 'Anil Kumar', mobile: '+91 88881 23456', problem: 'Chemical Splash Injury', time: '5 min ago', status: 'NEW', severity: 'CRITICAL' },
-    { id: 'EMR-02', name: 'Pooja Verma', mobile: '+91 77723 45678', problem: 'Sudden Vision Loss (Left Eye)', time: '22 min ago', status: 'ACKNOWLEDGED', severity: 'HIGH' },
-    { id: 'EMR-03', name: 'Sudhir Tiwari', mobile: '+91 99991 11234', problem: 'Severe Eye Pain after Injury', time: '1 hour ago', status: 'CONTACTED', severity: 'MEDIUM' },
-  ]);
+  // Emergency Alerts Data
+  const [emergencyAlerts, setEmergencyAlerts] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    async function fetchAlerts() {
+      const res = await getEmergencyRequests();
+      if (res.success) {
+        setEmergencyAlerts(res.requests);
+      }
+    }
+    fetchAlerts();
+    
+    // Poll every 30 seconds for new alerts
+    const interval = setInterval(fetchAlerts, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleUpdateEmergencyStatus = async (id: string, status: string) => {
+    const res = await updateEmergencyStatus(id, status);
+    if (res.success) {
+      setEmergencyAlerts(prev => prev.map(alert => alert.id === id ? { ...alert, status } : alert));
+      alert('Status updated successfully!');
+    } else {
+      alert('Failed to update status.');
+    }
+  };
 
   const handleConfirmDoctor = (docId: string) => {
     const doc = pendingDoctors.find((d) => d.id === docId);
@@ -399,19 +420,19 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-sm text-primary-dark">{emr.name}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${emr.severity === 'CRITICAL' ? 'bg-red-600 text-white' : emr.severity === 'HIGH' ? 'bg-amber-500 text-white' : 'bg-yellow-200 text-yellow-800'}`}>{emr.severity}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${emr.aiSeverity === 'HIGH' ? 'bg-red-600 text-white' : emr.aiSeverity === 'MEDIUM' ? 'bg-amber-500 text-white' : 'bg-yellow-200 text-yellow-800'}`}>{emr.aiSeverity || 'UNRATED'}</span>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${emr.status === 'NEW' ? 'bg-red-100 text-red-800' : emr.status === 'ACKNOWLEDGED' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>{emr.status}</span>
                     </div>
                     <p className="text-xs text-hospitalText font-semibold mt-1">{emr.problem}</p>
                     <div className="flex items-center gap-3 mt-1 text-[11px] text-mutedText">
                       <a href={`tel:${emr.mobile.replace(/\s/g, '')}`} className="text-primary font-bold hover:underline flex items-center"><Phone className="w-3 h-3 mr-0.5" />{emr.mobile}</a>
-                      <span><Clock className="w-3 h-3 inline mr-0.5" />{emr.time}</span>
+                      <span><Clock className="w-3 h-3 inline mr-0.5" />{new Date(emr.createdAt).toLocaleString()}</span>
                     </div>
                   </div>
                   <div className="flex gap-2 shrink-0">
-                    {emr.status === 'NEW' && <button onClick={() => alert('Acknowledged!')} className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-2 rounded-lg text-xs font-bold shadow">Acknowledge</button>}
-                    {(emr.status === 'NEW' || emr.status === 'ACKNOWLEDGED') && <button onClick={() => alert('Contacted patient')} className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-bold shadow">Mark Contacted</button>}
-                    <button onClick={() => alert('View details')} className="bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg text-xs font-bold">Details</button>
+                    {emr.status === 'NEW' && <button onClick={() => handleUpdateEmergencyStatus(emr.id, 'ACKNOWLEDGED')} className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-2 rounded-lg text-xs font-bold shadow">Acknowledge</button>}
+                    {(emr.status === 'NEW' || emr.status === 'ACKNOWLEDGED') && <button onClick={() => handleUpdateEmergencyStatus(emr.id, 'CONTACTED')} className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-bold shadow">Mark Contacted</button>}
+                    <button onClick={() => alert(JSON.stringify(emr, null, 2))} className="bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg text-xs font-bold">Details</button>
                   </div>
                 </div>
               ))}

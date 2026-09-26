@@ -5,6 +5,7 @@ import Link from 'next/link';
 import en from '@messages/en.json';
 import hi from '@messages/hi.json';
 import { AlertTriangle, PhoneCall, CheckCircle, ShieldAlert, Clock, ArrowLeft } from 'lucide-react';
+import { submitEmergencyRequest } from '@/actions/emergency';
 
 export default function EmergencyPage({ params }: { params: { locale: string } }) {
   const locale = params.locale === 'en' ? 'en' : 'hi';
@@ -12,17 +13,35 @@ export default function EmergencyPage({ params }: { params: { locale: string } }
 
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
+  const [email, setEmail] = useState('');
   const [problemType, setProblemType] = useState('Chemical Splash / Acid Injury');
   const [description, setDescription] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !mobile) {
       alert(locale === 'hi' ? 'कृपया नाम एवं मोबाइल नंबर दर्ज करें' : 'Please enter name and mobile number');
       return;
     }
-    setSubmitted(true);
+    
+    setIsSubmitting(true);
+    const result = await submitEmergencyRequest({
+      name,
+      mobile,
+      email: email || undefined,
+      problem: problemType,
+      description
+    });
+    
+    setIsSubmitting(false);
+
+    if (result.success) {
+      setSubmitted(true);
+    } else {
+      alert(locale === 'hi' ? 'कुछ त्रुटि हुई, कृपया पुनः प्रयास करें' : 'Something went wrong, please try again');
+    }
   };
 
   return (
@@ -90,6 +109,22 @@ export default function EmergencyPage({ params }: { params: { locale: string } }
             </div>
 
             <div>
+              <label className="text-xs font-bold text-hospitalText block mb-1">
+                {locale === 'hi' ? 'ईमेल (वैकल्पिक)' : 'Email (Optional)'}
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="email@example.com"
+                className="w-full p-3 border border-gray-300 rounded-xl text-xs focus:outline-none focus:border-emergency"
+              />
+              <p className="text-[10px] text-gray-500 mt-1">
+                {locale === 'hi' ? 'यदि उपलब्ध हो तो ईमेल दें, ताकि हम आपको अलर्ट प्राप्ति का पुष्टिकरण भेज सकें।' : 'Provide email if available so we can send you an alert confirmation.'}
+              </p>
+            </div>
+
+            <div>
               <label className="text-xs font-bold text-hospitalText block mb-1">{messages.emergency.problemType}</label>
               <select
                 value={problemType}
@@ -117,10 +152,11 @@ export default function EmergencyPage({ params }: { params: { locale: string } }
 
             <button
               type="submit"
-              className="w-full bg-emergency hover:bg-red-800 text-white font-extrabold py-3.5 rounded-xl text-sm shadow-emergency transition transform active:scale-95 flex justify-center items-center"
+              disabled={isSubmitting}
+              className="w-full bg-emergency hover:bg-red-800 text-white font-extrabold py-3.5 rounded-xl text-sm shadow-emergency transition transform active:scale-95 flex justify-center items-center disabled:opacity-50"
             >
               <AlertTriangle className="w-5 h-5 mr-2" />
-              {messages.emergency.submitRequest}
+              {isSubmitting ? (locale === 'hi' ? 'भेजा जा रहा है...' : 'Submitting...') : messages.emergency.submitRequest}
             </button>
           </form>
         </div>

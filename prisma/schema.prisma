@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // -----------------------------------------------------------------------------
@@ -487,6 +488,7 @@ model EmergencyRequest {
   id            String   @id @default(cuid())
   name          String
   mobile        String
+  email         String?
   problem       String
   incidentInfo  String?
   description   String?
