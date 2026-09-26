@@ -36,20 +36,25 @@ export async function submitEmergencyRequest(data: {
 
     // 2. Send Email if email is provided
     if (data.email) {
-      await transporter.sendMail({
-        from: process.env.SMTP_FROM || 'Prayag Eye Care <noreply@prayageyecare.com>',
-        to: data.email,
-        subject: 'Emergency Alert Received - Prayag Eye Care',
-        html: `
-          <h2>Emergency Alert Received</h2>
-          <p>Dear ${data.name},</p>
-          <p>We have successfully received your emergency alert regarding <strong>${data.problem}</strong>.</p>
-          <p>Our medical team has been notified and will contact you immediately at your mobile number: <strong>${data.mobile}</strong>.</p>
-          <p>If the situation is critical, please proceed to the nearest hospital immediately.</p>
-          <br/>
-          <p>Prayag Eye Care Team</p>
-        `,
-      });
+      try {
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM || 'Prayag Eye Care <noreply@prayageyecare.com>',
+          to: data.email,
+          subject: 'Emergency Alert Received - Prayag Eye Care',
+          html: `
+            <h2>Emergency Alert Received</h2>
+            <p>Dear ${data.name},</p>
+            <p>We have successfully received your emergency alert regarding <strong>${data.problem}</strong>.</p>
+            <p>Our medical team has been notified and will contact you immediately at your mobile number: <strong>${data.mobile}</strong>.</p>
+            <p>If the situation is critical, please proceed to the nearest hospital immediately.</p>
+            <br/>
+            <p>Prayag Eye Care Team</p>
+          `,
+        });
+      } catch (emailError) {
+        console.error('Failed to send confirmation email. (Ensure SMTP variables are correct):', emailError);
+        // We don't throw the error, we still want the request to be successful
+      }
     }
 
     revalidatePath('/dashboard/owner');
