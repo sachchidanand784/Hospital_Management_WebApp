@@ -12,6 +12,7 @@ import {
   BarChart3, Megaphone, FileText, Lock, LogOut, Search, Filter, Bell,
 } from 'lucide-react';
 import { getEmergencyRequests, updateEmergencyStatus } from '@/actions/emergency';
+import { getHospitalSettings, updateHospitalSettings } from '@/actions/hospital';
 
 type TabType = 'OVERVIEW' | 'DOCTORS' | 'STAFF' | 'SERVICES' | 'APPOINTMENTS' | 'EMERGENCY' | 'HOSPITAL' | 'REPORTS';
 
@@ -43,6 +44,40 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
     fullName: '', email: '', mobile: '', qualification: '', specialization: '',
     experienceYears: '', consultationFee: '', bio: '',
   });
+
+  // Hospital Settings State
+  const [hospitalSettings, setHospitalSettings] = useState({
+    name_en: '',
+    name_hi: '',
+    address_en: '',
+    email: '',
+    phone1: '',
+    phone2: '',
+    emergencyPhone: '',
+    emergency24x7: true,
+  });
+
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+
+  React.useEffect(() => {
+    async function loadSettings() {
+      const res = await getHospitalSettings();
+      if (res.success && res.hospital) {
+        setHospitalSettings(res.hospital);
+      }
+      setIsLoadingSettings(false);
+    }
+    loadSettings();
+  }, []);
+
+  const handleSaveHospitalSettings = async () => {
+    const res = await updateHospitalSettings(hospitalSettings);
+    if (res.success) {
+      alert(locale === 'hi' ? 'अस्पताल की सेटिंग्स सफलतापूर्वक सहेजी गईं!' : 'Hospital settings saved successfully!');
+    } else {
+      alert(locale === 'hi' ? 'सेटिंग्स सहेजने में विफल!' : 'Failed to save settings!');
+    }
+  };
 
   // Demo Appointments Data
   const [appointments] = useState([
@@ -448,23 +483,23 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
             <h2 className="text-base font-bold text-primary-dark flex items-center"><Building className="w-5 h-5 mr-2 text-primary" />{locale === 'hi' ? 'अस्पताल सूचना एवं सेटिंग्स' : 'Hospital Information & Settings'}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
-                <div><label className="text-[11px] font-bold text-mutedText block mb-1">Hospital Name (EN)</label><input type="text" defaultValue={SEED_DATA.hospital.name_en} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:border-primary focus:outline-none" /></div>
-                <div><label className="text-[11px] font-bold text-mutedText block mb-1">Hospital Name (HI)</label><input type="text" defaultValue={SEED_DATA.hospital.name_hi} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:border-primary focus:outline-none" /></div>
-                <div><label className="text-[11px] font-bold text-mutedText block mb-1">Address</label><input type="text" defaultValue={SEED_DATA.hospital.address_en} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:border-primary focus:outline-none" /></div>
-                <div><label className="text-[11px] font-bold text-mutedText block mb-1">Email</label><input type="email" defaultValue={SEED_DATA.hospital.email} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:border-primary focus:outline-none" /></div>
+                <div><label className="text-[11px] font-bold text-mutedText block mb-1">Hospital Name (EN)</label><input type="text" value={hospitalSettings.name_en} onChange={(e) => setHospitalSettings({ ...hospitalSettings, name_en: e.target.value })} disabled={isLoadingSettings} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:border-primary focus:outline-none" /></div>
+                <div><label className="text-[11px] font-bold text-mutedText block mb-1">Hospital Name (HI)</label><input type="text" value={hospitalSettings.name_hi} onChange={(e) => setHospitalSettings({ ...hospitalSettings, name_hi: e.target.value })} disabled={isLoadingSettings} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:border-primary focus:outline-none" /></div>
+                <div><label className="text-[11px] font-bold text-mutedText block mb-1">Address</label><input type="text" value={hospitalSettings.address_en} onChange={(e) => setHospitalSettings({ ...hospitalSettings, address_en: e.target.value })} disabled={isLoadingSettings} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:border-primary focus:outline-none" /></div>
+                <div><label className="text-[11px] font-bold text-mutedText block mb-1">Email</label><input type="email" value={hospitalSettings.email} onChange={(e) => setHospitalSettings({ ...hospitalSettings, email: e.target.value })} disabled={isLoadingSettings} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:border-primary focus:outline-none" /></div>
               </div>
               <div className="space-y-3">
-                <div><label className="text-[11px] font-bold text-mutedText block mb-1">Phone 1</label><input type="tel" defaultValue={SEED_DATA.hospital.phones[0]} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:border-primary focus:outline-none" /></div>
-                <div><label className="text-[11px] font-bold text-mutedText block mb-1">Phone 2</label><input type="tel" defaultValue={SEED_DATA.hospital.phones[1]} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:border-primary focus:outline-none" /></div>
-                <div><label className="text-[11px] font-bold text-mutedText block mb-1">Emergency Phone</label><input type="tel" defaultValue={SEED_DATA.hospital.emergencyPhone} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:border-primary focus:outline-none" /></div>
+                <div><label className="text-[11px] font-bold text-mutedText block mb-1">Phone 1</label><input type="tel" value={hospitalSettings.phone1} onChange={(e) => setHospitalSettings({ ...hospitalSettings, phone1: e.target.value })} disabled={isLoadingSettings} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:border-primary focus:outline-none" /></div>
+                <div><label className="text-[11px] font-bold text-mutedText block mb-1">Phone 2</label><input type="tel" value={hospitalSettings.phone2} onChange={(e) => setHospitalSettings({ ...hospitalSettings, phone2: e.target.value })} disabled={isLoadingSettings} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:border-primary focus:outline-none" /></div>
+                <div><label className="text-[11px] font-bold text-mutedText block mb-1">Emergency Phone</label><input type="tel" value={hospitalSettings.emergencyPhone} onChange={(e) => setHospitalSettings({ ...hospitalSettings, emergencyPhone: e.target.value })} disabled={isLoadingSettings} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:border-primary focus:outline-none" /></div>
                 <div className="flex items-center gap-2 pt-3">
-                  <input type="checkbox" defaultChecked={SEED_DATA.hospital.emergency24x7} className="w-4 h-4 accent-primary" />
+                  <input type="checkbox" checked={hospitalSettings.emergency24x7} onChange={(e) => setHospitalSettings({ ...hospitalSettings, emergency24x7: e.target.checked })} disabled={isLoadingSettings} className="w-4 h-4 accent-primary" />
                   <label className="text-xs font-bold text-primary-dark">{locale === 'hi' ? '24x7 आपातकालीन सेवा सक्रिय' : '24x7 Emergency Service Active'}</label>
                 </div>
               </div>
             </div>
             <div className="pt-4 border-t border-gray-100">
-              <button onClick={() => alert('Settings saved!')} className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow transition">{locale === 'hi' ? 'सेटिंग्स सहेजें' : 'Save Settings'}</button>
+              <button onClick={handleSaveHospitalSettings} className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow transition">{locale === 'hi' ? 'सेटिंग्स सहेजें' : 'Save Settings'}</button>
             </div>
           </section>
         </div>
