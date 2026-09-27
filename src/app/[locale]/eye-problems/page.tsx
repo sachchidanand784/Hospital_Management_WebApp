@@ -7,20 +7,43 @@ import hi from '@messages/hi.json';
 import { SEED_DATA } from '@backend/db/seed';
 import { Search, AlertTriangle, CheckCircle, ArrowRight, ShieldAlert } from 'lucide-react';
 
+import { getPublicServices } from '@/actions/public';
+
 export default function EyeProblemsPage({ params }: { params: { locale: string } }) {
   const locale = params.locale === 'en' ? 'en' : 'hi';
   const messages = locale === 'hi' ? hi : en;
 
   const [searchQuery, setSearchQuery] = useState('');
-
-  const allProblems = SEED_DATA.services.flatMap((s) =>
-    s.problems.map((p) => ({
-      ...p,
-      serviceName_en: s.name_en,
-      serviceName_hi: s.name_hi,
-      serviceId: s.id,
-    }))
+  
+  const [allProblems, setAllProblems] = useState<any[]>(
+    SEED_DATA.services.flatMap((s) =>
+      s.problems.map((p: any) => ({
+        ...p,
+        serviceName_en: s.name_en,
+        serviceName_hi: s.name_hi,
+        serviceId: s.id,
+      }))
+    )
   );
+
+  React.useEffect(() => {
+    async function loadData() {
+      const res = await getPublicServices();
+      if (res.success) {
+        setAllProblems(
+          res.services.flatMap((s: any) =>
+            s.problems.map((p: any) => ({
+              ...p,
+              serviceName_en: s.name_en,
+              serviceName_hi: s.name_hi,
+              serviceId: s.id,
+            }))
+          )
+        );
+      }
+    }
+    loadData();
+  }, []);
 
   const filteredProblems = allProblems.filter((p) =>
     p.name_en.toLowerCase().includes(searchQuery.toLowerCase()) ||

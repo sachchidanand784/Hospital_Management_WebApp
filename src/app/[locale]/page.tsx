@@ -21,9 +21,23 @@ import {
   Glasses
 } from 'lucide-react';
 
+import { getPublicServices, getPublicDoctors } from '@/actions/public';
+
 export default function HomePage({ params }: { params: { locale: string } }) {
   const locale = params.locale === 'en' ? 'en' : 'hi';
   const messages = locale === 'hi' ? hi : en;
+
+  const [services, setServices] = useState<any[]>(SEED_DATA.services);
+  const [doctors, setDoctors] = useState<any[]>(SEED_DATA.doctors.filter(d => d.verificationStatus === 'VERIFIED'));
+
+  React.useEffect(() => {
+    async function loadData() {
+      const [srvRes, docRes] = await Promise.all([getPublicServices(), getPublicDoctors()]);
+      if (srvRes.success) setServices(srvRes.services);
+      if (docRes.success) setDoctors(docRes.doctors);
+    }
+    loadData();
+  }, []);
 
   const [aiChatOpen, setAiChatOpen] = useState(false);
   const [aiInput, setAiInput] = useState('');
@@ -196,7 +210,7 @@ export default function HomePage({ params }: { params: { locale: string } }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {SEED_DATA.services.map((srv) => (
+          {services.map((srv) => (
             <div key={srv.id} className="surface-card p-6 rounded-2xl shadow-card hover:shadow-xl transition space-y-3 flex flex-col justify-between">
               <div className="space-y-3">
                 <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
@@ -235,12 +249,12 @@ export default function HomePage({ params }: { params: { locale: string } }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {SEED_DATA.doctors.filter(d => d.verificationStatus === 'VERIFIED').map((doc) => (
+          {doctors.map((doc) => (
             <div key={doc.id} className="surface-card p-5 rounded-2xl shadow-card hover:shadow-xl transition space-y-3 flex flex-col justify-between">
               <div className="space-y-3 text-center">
                 {/* Doctor Neutral Avatar */}
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-cyan-100 text-primary rounded-full flex items-center justify-center mx-auto border-2 border-primary/20 shadow">
-                  <span className="text-xl font-extrabold">{doc.fullName.split(' ').map(n => n[0]).join('')}</span>
+                  <span className="text-xl font-extrabold">{doc.fullName.split(' ').map((n: any) => n[0]).join('')}</span>
                 </div>
 
                 <div>

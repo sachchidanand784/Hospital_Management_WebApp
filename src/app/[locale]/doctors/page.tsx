@@ -7,6 +7,8 @@ import hi from '@messages/hi.json';
 import { SEED_DATA } from '@backend/db/seed';
 import { Search, Calendar, ShieldCheck, ArrowRight, UserPlus } from 'lucide-react';
 
+import { getPublicDoctors, getPublicSpecializations } from '@/actions/public';
+
 export default function DoctorsDirectoryPage({ params }: { params: { locale: string } }) {
   const locale = params.locale === 'en' ? 'en' : 'hi';
   const messages = locale === 'hi' ? hi : en;
@@ -14,7 +16,19 @@ export default function DoctorsDirectoryPage({ params }: { params: { locale: str
   const [selectedSpec, setSelectedSpec] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const verifiedDoctors = SEED_DATA.doctors.filter((d) => d.verificationStatus === 'VERIFIED');
+  const [verifiedDoctors, setVerifiedDoctors] = useState<any[]>(
+    SEED_DATA.doctors.filter((d) => d.verificationStatus === 'VERIFIED')
+  );
+  const [specializations, setSpecializations] = useState<any[]>(SEED_DATA.specializations);
+
+  React.useEffect(() => {
+    async function loadData() {
+      const [docRes, specRes] = await Promise.all([getPublicDoctors(), getPublicSpecializations()]);
+      if (docRes.success) setVerifiedDoctors(docRes.doctors);
+      if (specRes.success) setSpecializations(specRes.specializations);
+    }
+    loadData();
+  }, []);
 
   const filteredDoctors = verifiedDoctors.filter((doc) => {
     const matchesSpec = selectedSpec === 'ALL' || doc.specialization_en === selectedSpec;
@@ -54,7 +68,7 @@ export default function DoctorsDirectoryPage({ params }: { params: { locale: str
           >
             All Specializations
           </button>
-          {SEED_DATA.specializations.slice(0, 4).map((sp) => (
+          {specializations.slice(0, 4).map((sp) => (
             <button
               key={sp.id}
               onClick={() => setSelectedSpec(sp.name_en)}
@@ -83,7 +97,7 @@ export default function DoctorsDirectoryPage({ params }: { params: { locale: str
           <div key={doc.id} className="surface-card p-6 rounded-2xl shadow-card hover:shadow-xl transition space-y-4 flex flex-col justify-between border border-hospitalBorder">
             <div className="space-y-3 text-center">
               <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-cyan-100 text-primary rounded-full flex items-center justify-center mx-auto border-2 border-primary/20 shadow">
-                <span className="text-xl font-extrabold">{doc.fullName.split(' ').map((n) => n[0]).join('')}</span>
+                <span className="text-xl font-extrabold">{doc.fullName.split(' ').map((n: any) => n[0]).join('')}</span>
               </div>
 
               <div>

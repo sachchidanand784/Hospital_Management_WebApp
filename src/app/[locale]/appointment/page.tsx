@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import en from '@messages/en.json';
 import hi from '@messages/hi.json';
-import { SEED_DATA } from '@backend/db/seed';
+
+import { getPublicServices, getPublicDoctors } from '@/actions/public';
 import { allocateToken } from '@backend/engines/token-engine';
 import { calculateETAWindow } from '@backend/engines/eta-engine';
 import { computeSlots } from '@backend/engines/availability-engine';
@@ -28,10 +29,28 @@ export default function AppointmentPage({ params }: { params: { locale: string }
   const messages = locale === 'hi' ? hi : en;
 
   const [step, setStep] = useState<number>(1);
-  const [selectedService, setSelectedService] = useState<string>(SEED_DATA.services[0].id);
+  const [services, setServices] = useState<any[]>([]);
+  const [verifiedDoctors, setVerifiedDoctors] = useState<any[]>([]);
+
+  const [selectedService, setSelectedService] = useState<string>('');
   const [selectedProblem, setSelectedProblem] = useState<string>('');
   const [doctorPreference, setDoctorPreference] = useState<'SPECIFIC' | 'GENERAL'>('SPECIFIC');
-  const [selectedDoctor, setSelectedDoctor] = useState<string>(SEED_DATA.doctors[0].id);
+  const [selectedDoctor, setSelectedDoctor] = useState<string>('');
+
+  React.useEffect(() => {
+    async function loadData() {
+      const [srvRes, docRes] = await Promise.all([getPublicServices(), getPublicDoctors()]);
+      if (srvRes.success && srvRes.services.length > 0) {
+        setServices(srvRes.services);
+        setSelectedService(srvRes.services[0].id);
+      }
+      if (docRes.success && docRes.doctors.length > 0) {
+        setVerifiedDoctors(docRes.doctors);
+        setSelectedDoctor(docRes.doctors[0].id);
+      }
+    }
+    loadData();
+  }, []);
   const [selectedDate, setSelectedDate] = useState<string>('2026-09-26');
   const [selectedSlot, setSelectedSlot] = useState<string>('09:20');
   
@@ -51,8 +70,7 @@ export default function AppointmentPage({ params }: { params: { locale: string }
   const [allocatedToken, setAllocatedToken] = useState<string>('');
   const [etaResult, setEtaResult] = useState<any>(null);
 
-  const activeServiceObj = SEED_DATA.services.find(s => s.id === selectedService) || SEED_DATA.services[0];
-  const verifiedDoctors = SEED_DATA.doctors.filter(d => d.verificationStatus === 'VERIFIED');
+  const activeServiceObj = services.find(s => s.id === selectedService) || (services.length > 0 ? services[0] : null);
 
   const availableSlots = computeSlots({
     startTime: '09:00',
@@ -110,7 +128,7 @@ export default function AppointmentPage({ params }: { params: { locale: string }
         <div className="surface-card p-6 rounded-2xl shadow-card space-y-6">
           <h2 className="text-xl font-bold text-primary-dark">{messages.booking.step1}: {messages.services.title}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {SEED_DATA.services.map((srv) => (
+            {services.map((srv) => (
               <div
                 key={srv.id}
                 onClick={() => setSelectedService(srv.id)}
@@ -143,7 +161,7 @@ export default function AppointmentPage({ params }: { params: { locale: string }
         <div className="surface-card p-6 rounded-2xl shadow-card space-y-6">
           <h2 className="text-xl font-bold text-primary-dark">{messages.booking.step2}</h2>
           <div className="space-y-3">
-            {activeServiceObj.problems.map((prob) => (
+            {activeServiceObj?.problems?.map((prob: any) => (
               <div
                 key={prob.id}
                 onClick={() => setSelectedProblem(prob.id)}

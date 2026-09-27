@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { getEmergencyRequests, updateEmergencyStatus } from '@/actions/emergency';
 import { getHospitalSettings, updateHospitalSettings } from '@/actions/hospital';
+import { getOwnerDashboardData } from '@/actions/dashboard';
 
 type TabType = 'OVERVIEW' | 'DOCTORS' | 'STAFF' | 'SERVICES' | 'APPOINTMENTS' | 'EMERGENCY' | 'HOSPITAL' | 'REPORTS';
 
@@ -23,18 +24,17 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
   const [activeTab, setActiveTab] = useState<TabType>('OVERVIEW');
 
   // Doctor Management State
-  const [pendingDoctors, setPendingDoctors] = useState(
-    SEED_DATA.doctors.filter((d) => d.verificationStatus === 'PENDING')
-  );
-  const [verifiedDoctors, setVerifiedDoctors] = useState(
-    SEED_DATA.doctors.filter((d) => d.verificationStatus === 'VERIFIED')
-  );
+  const [pendingDoctors, setPendingDoctors] = useState<any[]>([]);
+  const [verifiedDoctors, setVerifiedDoctors] = useState<any[]>([]);
   const [declineModalDoc, setDeclineModalDoc] = useState<any>(null);
   const [declineReason, setDeclineReason] = useState('');
   const [doctorSearch, setDoctorSearch] = useState('');
 
   // Staff Management State
-  const [staffList, setStaffList] = useState(SEED_DATA.demoUsers);
+  const [staffList, setStaffList] = useState<any[]>([]);
+  
+  const [services, setServices] = useState<any[]>([]);
+  const [specializations, setSpecializations] = useState<any[]>([]);
   const [addStaffModal, setAddStaffModal] = useState(false);
   const [newStaff, setNewStaff] = useState({ name: '', email: '', mobile: '', role: 'RECEPTION' });
 
@@ -66,6 +66,15 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
         setHospitalSettings(res.hospital);
       }
       setIsLoadingSettings(false);
+
+      const dashRes = await getOwnerDashboardData();
+      if (dashRes.success) {
+        setPendingDoctors(dashRes.doctors.filter((d: any) => d.verificationStatus === 'PENDING'));
+        setVerifiedDoctors(dashRes.doctors.filter((d: any) => d.verificationStatus === 'VERIFIED'));
+        setStaffList(dashRes.staff);
+        setServices(dashRes.services);
+        setSpecializations(dashRes.specializations);
+      }
     }
     loadSettings();
   }, []);
@@ -391,13 +400,13 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
               <button onClick={() => alert('Add new service form')} className="bg-primary text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center shadow"><PlusCircle className="w-3.5 h-3.5 mr-1" />{locale === 'hi' ? 'सेवा जोड़ें' : 'Add Service'}</button>
             </div>
             <div className="space-y-3">
-              {SEED_DATA.services.map((srv) => (
+              {services.map((srv) => (
                 <div key={srv.id} className="p-4 rounded-xl border border-gray-200 bg-white flex flex-col sm:flex-row justify-between gap-3">
                   <div className="flex-1">
                     <h3 className="font-bold text-sm text-primary-dark">{locale === 'hi' ? srv.name_hi : srv.name_en}</h3>
                     <p className="text-[11px] text-mutedText mt-0.5">{locale === 'hi' ? srv.desc_hi : srv.desc_en}</p>
                     <div className="flex flex-wrap gap-1.5 mt-2">
-                      {srv.problems.map((p) => (<span key={p.id} className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${p.redFlag ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>{locale === 'hi' ? p.name_hi : p.name_en}</span>))}
+                      {srv.problems?.map((p: any) => (<span key={p.id} className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${p.redFlag ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>{locale === 'hi' ? p.name_hi : p.name_en}</span>))}
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2 shrink-0">
@@ -545,7 +554,7 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="text-[11px] font-bold block mb-1">{locale === 'hi' ? 'विशेषज्ञता *' : 'Specialization *'}</label><select required value={newDoctor.specialization} onChange={(e) => setNewDoctor({...newDoctor, specialization: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:border-primary focus:outline-none">
                   <option value="">Select...</option>
-                  {SEED_DATA.specializations.map((s) => <option key={s.id} value={s.name_en}>{locale === 'hi' ? s.name_hi : s.name_en}</option>)}
+                  {specializations.map((s) => <option key={s.id} value={s.name_en}>{locale === 'hi' ? s.name_hi : s.name_en}</option>)}
                 </select></div>
                 <div><label className="text-[11px] font-bold block mb-1">{locale === 'hi' ? 'अनुभव (वर्ष)' : 'Experience (yrs)'}</label><input type="number" value={newDoctor.experienceYears} onChange={(e) => setNewDoctor({...newDoctor, experienceYears: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:border-primary focus:outline-none" /></div>
               </div>

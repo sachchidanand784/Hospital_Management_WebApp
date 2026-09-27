@@ -22,7 +22,7 @@ export async function getHospitalSettings() {
           phone1: SEED_DATA.hospital.phones[0] || '',
           phone2: SEED_DATA.hospital.phones[1] || '',
           emergencyPhone: SEED_DATA.hospital.emergencyPhone,
-          emergency24x7: SEED_DATA.hospital.emergency24x7,
+          emergency24x7: SEED_DATA.hospital.emergency24x7 as boolean,
         }
       };
     }
@@ -37,7 +37,7 @@ export async function getHospitalSettings() {
         phone1: hospital.phones[0] || '',
         phone2: hospital.phones[1] || '',
         emergencyPhone: hospital.emergencyPhone || '',
-        emergency24x7: emergencySetting ? emergencySetting.value : true,
+        emergency24x7: (emergencySetting ? emergencySetting.value : true) as boolean,
       } 
     };
   } catch (error) {

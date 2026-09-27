@@ -7,9 +7,21 @@ import hi from '@messages/hi.json';
 import { SEED_DATA } from '@backend/db/seed';
 import { Eye, CheckCircle, ArrowRight, Glasses, Calendar } from 'lucide-react';
 
+import { getPublicServices } from '@/actions/public';
+
 export default function ServicesPage({ params }: { params: { locale: string } }) {
   const locale = params.locale === 'en' ? 'en' : 'hi';
   const messages = locale === 'hi' ? hi : en;
+
+  const [services, setServices] = React.useState<any[]>(SEED_DATA.services);
+
+  React.useEffect(() => {
+    async function loadData() {
+      const res = await getPublicServices();
+      if (res.success) setServices(res.services);
+    }
+    loadData();
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -25,7 +37,7 @@ export default function ServicesPage({ params }: { params: { locale: string } })
 
       {/* Services Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {SEED_DATA.services.map((srv) => (
+        {services.map((srv) => (
           <div key={srv.id} className="surface-card p-6 rounded-2xl shadow-card space-y-4 border border-hospitalBorder flex flex-col justify-between">
             <div className="space-y-3">
               <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center font-bold">
@@ -39,7 +51,7 @@ export default function ServicesPage({ params }: { params: { locale: string } })
                   {locale === 'hi' ? 'प्रमुख समस्याएं एवं कारण:' : 'Key Symptoms Covered:'}
                 </span>
                 <ul className="space-y-1 text-xs text-hospitalText">
-                  {srv.problems.map((p) => (
+                  {srv.problems.map((p: any) => (
                     <li key={p.id} className="flex items-center space-x-2">
                       <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                       <span>{locale === 'hi' ? p.name_hi : p.name_en}</span>
