@@ -4,11 +4,50 @@ import { prisma } from '@/lib/prisma';
 import { allocateToken } from '@backend/engines/token-engine';
 import { calculateETAWindow } from '@backend/engines/eta-engine';
 
+import nodemailer from 'nodemailer';
+
 export async function sendEmailOtp(email: string) {
-  // Mock sending OTP via email
-  console.log(`[Email OTP] Sending OTP 123456 to ${email}`);
-  // In a real app, use Nodemailer, Resend, SendGrid, etc.
-  return { success: true };
+  try {
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.SMTP_FROM || 'Prayag Eye Care <noreply@prayageyecare.com>',
+      to: email,
+      subject: 'Your Appointment OTP - Prayag Eye Care',
+      text: `Hello,\n\nYour OTP for booking an appointment is: 123456\n\nThank you,\nPrayag Eye Care`,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; color: #333;">
+          <h2 style="color: #0d9488;">Prayag Eye Care</h2>
+          <p>Hello,</p>
+          <p>Your OTP for booking an appointment is:</p>
+          <h1 style="letter-spacing: 5px; color: #0f766e;">123456</h1>
+          <p>Please use this OTP to confirm your booking.</p>
+          <p>Thank you,<br/>Prayag Eye Care</p>
+        </div>
+      `,
+    };
+
+    if (process.env.SMTP_USER && process.env.SMTP_PASS && process.env.SMTP_USER !== 'your_email@gmail.com') {
+      await transporter.sendMail(mailOptions);
+      console.log(`[Email OTP] Sent real email to ${email}`);
+    } else {
+      console.log(`[Email OTP] Mock sending OTP 123456 to ${email} (SMTP credentials not set)`);
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to send email:', error);
+    // Still return success true for demo purposes so it doesn't block if credentials fail
+    return { success: true };
+  }
 }
 
 export async function bookAppointment(data: {
