@@ -6,7 +6,7 @@ import en from '@messages/en.json';
 import hi from '@messages/hi.json';
 
 import { getPublicServices, getPublicDoctors } from '@/actions/public';
-import { allocateToken } from '@backend/engines/token-engine';
+import { sendEmailOtp, bookAppointment } from '@/actions/appointment';
 import { calculateETAWindow } from '@backend/engines/eta-engine';
 import { computeSlots } from '@backend/engines/availability-engine';
 import {
@@ -59,6 +59,7 @@ export default function AppointmentPage({ params }: { params: { locale: string }
   const [patientAge, setPatientAge] = useState<string>('');
   const [patientGender, setPatientGender] = useState<string>('Male');
   const [patientMobile, setPatientMobile] = useState<string>('');
+  const [patientEmail, setPatientEmail] = useState<string>('');
   const [patientAddress, setPatientAddress] = useState<string>('Prayagraj');
   const [consent, setConsent] = useState<boolean>(true);
   const [otpSent, setOtpSent] = useState<boolean>(false);
@@ -81,33 +82,41 @@ export default function AppointmentPage({ params }: { params: { locale: string }
     breakEnd: '14:00',
   });
 
-  const handleSendOtp = () => {
-    if (!patientName || !patientMobile) {
-      alert(locale === 'hi' ? 'कृपया नाम एवं मोबाइल नंबर दर्ज करें' : 'Please enter patient name and mobile number');
+  const handleSendOtp = async () => {
+    if (!patientName || !patientEmail) {
+      alert(locale === 'hi' ? 'कृपया नाम एवं ईमेल दर्ज करें' : 'Please enter patient name and email');
       return;
     }
-    setOtpSent(true);
+    const res = await sendEmailOtp(patientEmail);
+    if (res.success) {
+      setOtpSent(true);
+    }
   };
 
-  const handleConfirmBooking = () => {
-    const code = `PRY-2026-${Math.floor(100000 + Math.random() * 900000)}`;
-    const tokenRes = allocateToken({
-      prefix: 'A',
-      lastSeq: 17,
-      slotIndex: 2,
-      capacityPerSlot: 3,
-    });
-    const eta = calculateETAWindow({
-      patientsAhead: 3,
-      avgConsultMin: 15,
-      currentTime: new Date(),
+  const handleConfirmBooking = async () => {
+    const res = await bookAppointment({
+      serviceId: selectedService,
+      problemId: selectedProblem,
+      doctorId: selectedDoctor,
+      doctorPreference,
+      date: selectedDate,
+      slotStart: selectedSlot,
+      patientName,
+      patientAge,
+      patientGender,
+      patientMobile,
+      patientEmail,
     });
 
-    setAppointmentCode(code);
-    setAllocatedToken(tokenRes.tokenLabel);
-    setEtaResult(eta);
-    setBookingConfirmed(true);
-    setStep(8);
+    if (res.success) {
+      setAppointmentCode(res.appointmentCode!);
+      setAllocatedToken(res.allocatedToken!);
+      setEtaResult(res.etaResult);
+      setBookingConfirmed(true);
+      setStep(8);
+    } else {
+      alert(locale === 'hi' ? 'बुकिंग विफल रही, कृपया पुनः प्रयास करें' : 'Booking failed, please try again');
+    }
   };
 
   return (
@@ -336,12 +345,12 @@ export default function AppointmentPage({ params }: { params: { locale: string }
             </div>
 
             <div>
-              <label className="text-xs font-bold text-hospitalText block mb-1">{messages.booking.mobileNumber} *</label>
+              <label className="text-xs font-bold text-hospitalText block mb-1">Email *</label>
               <input
-                type="text"
-                value={patientMobile}
-                onChange={(e) => setPatientMobile(e.target.value)}
-                placeholder="10-digit Mobile Number"
+                type="email"
+                value={patientEmail}
+                onChange={(e) => setPatientEmail(e.target.value)}
+                placeholder="your.email@example.com"
                 className="w-full p-2.5 border border-gray-300 rounded-xl text-xs focus:border-primary focus:outline-none"
               />
             </div>
@@ -353,12 +362,12 @@ export default function AppointmentPage({ params }: { params: { locale: string }
               onClick={handleSendOtp}
               className="bg-accent text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow hover:bg-teal-600 transition"
             >
-              {messages.booking.sendOtp}
+              {locale === 'hi' ? 'ईमेल OTP भेजें' : 'Send Email OTP'}
             </button>
           ) : (
             <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl space-y-3">
               <span className="text-xs font-bold text-primary block">
-                {locale === 'hi' ? 'ओटीपी दर्ज करें (परीक्षण ओटीपी: 123456)' : 'Enter OTP (Demo OTP: 123456)'}
+                {locale === 'hi' ? 'ईमेल ओटीपी दर्ज करें (परीक्षण ओटीपी: 123456)' : 'Enter Email OTP (Demo OTP: 123456)'}
               </span>
               <div className="flex space-x-2">
                 <input
@@ -431,12 +440,21 @@ export default function AppointmentPage({ params }: { params: { locale: string }
 
           {/* Download & Share Actions */}
           <div className="flex flex-wrap justify-center gap-3 pt-2">
-            <button onClick={() => alert('Token PDF Download Started')} className="bg-primary text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center shadow">
+            <a 
+              href={`data:text/plain;charset=utf-8,${encodeURIComponent(`Token: ${allocatedToken}\nAppointment ID: ${appointmentCode}\nPatient: ${patientName}\nDate: ${selectedDate}\nTime: ${selectedSlot}`)}`} 
+              download={`token-${allocatedToken}.txt`}
+              className="bg-primary text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center shadow hover:bg-primary-dark"
+            >
               <Download className="w-4 h-4 mr-1.5" /> {messages.booking.downloadPdf}
-            </button>
-            <button onClick={() => alert('WhatsApp Share Triggered')} className="bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center shadow">
+            </a>
+            <a 
+              href={`https://wa.me/?text=${encodeURIComponent(`Hi ${patientName}, your appointment at Prayag Eye Care is confirmed. Token: ${allocatedToken}. Time: ${selectedDate} ${selectedSlot}.`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center shadow hover:bg-emerald-700"
+            >
               <Share2 className="w-4 h-4 mr-1.5" /> {messages.booking.shareWhatsapp}
-            </button>
+            </a>
             <Link href={`/${locale}/track`} className="bg-accent text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center shadow">
               {messages.booking.trackLive}
             </Link>

@@ -259,6 +259,7 @@ model Patient {
   age            Int?
   gender         String?
   mobile         String
+  email          String?
   address        String?
   language       String   @default("hi")
   consentAt      DateTime?
