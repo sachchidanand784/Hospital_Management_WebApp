@@ -11,7 +11,6 @@ export async function sendEmailOtp(email: string) {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: false, // true for 465, false for other ports
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
@@ -21,15 +20,15 @@ export async function sendEmailOtp(email: string) {
     const mailOptions = {
       from: process.env.SMTP_FROM || 'Prayag Eye Care <noreply@prayageyecare.com>',
       to: email,
-      subject: 'Your Appointment OTP - Prayag Eye Care',
-      text: `Hello,\n\nYour OTP for booking an appointment is: 123456\n\nThank you,\nPrayag Eye Care`,
+      subject: 'Verify your email - Prayag Eye Care',
+      text: `Hello,\n\nPlease verify your email to continue your appointment booking. Your verification code is: 123456\n\nThank you,\nPrayag Eye Care`,
       html: `
         <div style="font-family: sans-serif; padding: 20px; color: #333;">
           <h2 style="color: #0d9488;">Prayag Eye Care</h2>
           <p>Hello,</p>
-          <p>Your OTP for booking an appointment is:</p>
+          <p>Please verify your email to continue your appointment booking. Your verification code is:</p>
           <h1 style="letter-spacing: 5px; color: #0f766e;">123456</h1>
-          <p>Please use this OTP to confirm your booking.</p>
+          <p>If you did not request this, please ignore this email.</p>
           <p>Thank you,<br/>Prayag Eye Care</p>
         </div>
       `,
