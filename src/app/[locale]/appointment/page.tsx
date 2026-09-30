@@ -51,7 +51,9 @@ export default function AppointmentPage({ params }: { params: { locale: string }
     }
     loadData();
   }, []);
-  const [selectedDate, setSelectedDate] = useState<string>('2026-09-26');
+  // Initialize with today's date in YYYY-MM-DD format
+  const getTodayDate = () => new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState<string>(getTodayDate());
   const [selectedSlot, setSelectedSlot] = useState<string>('09:20');
   
   // Patient details
@@ -267,7 +269,7 @@ export default function AppointmentPage({ params }: { params: { locale: string }
               <input
                 type="date"
                 value={selectedDate}
-                min="2026-09-25"
+                min={getTodayDate()}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-primary font-medium"
               />
