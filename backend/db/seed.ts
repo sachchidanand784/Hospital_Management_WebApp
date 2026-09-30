@@ -210,3 +210,90 @@ export const SEED_DATA = {
     { role: "OT", email: "ot@hospital.com", mobile: "9999900007", name: "OT & Surgery Staff" },
   ],
 };
+
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+
+async function main() {
+  console.log('Starting seed...');
+
+  // Seed Hospital Settings
+  await prisma.hospital.upsert({
+    where: { id: 'default' },
+    update: {},
+    create: {
+      id: 'default',
+      name_en: SEED_DATA.hospital.name_en,
+      name_hi: SEED_DATA.hospital.name_hi,
+      address_en: SEED_DATA.hospital.address_en,
+      address_hi: SEED_DATA.hospital.address_hi,
+      email: SEED_DATA.hospital.email,
+      phones: SEED_DATA.hospital.phones,
+      emergencyPhone: SEED_DATA.hospital.emergencyPhone,
+      about_en: SEED_DATA.hospital.about_en,
+      about_hi: SEED_DATA.hospital.about_hi,
+    }
+  });
+
+  // Seed Services
+  for (const srv of SEED_DATA.services) {
+    await prisma.service.upsert({
+      where: { id: srv.id },
+      update: {},
+      create: {
+        id: srv.id,
+        name_en: srv.name_en,
+        name_hi: srv.name_hi,
+        desc_en: srv.desc_en,
+        desc_hi: srv.desc_hi,
+        problems: {
+          create: srv.problems.map(p => ({
+            id: p.id,
+            name_en: p.name_en,
+            name_hi: p.name_hi,
+            redFlag: p.redFlag || false
+          }))
+        }
+      }
+    });
+  }
+
+  // Seed Doctors
+  for (const doc of SEED_DATA.doctors) {
+    await prisma.doctor.upsert({
+      where: { id: doc.id },
+      update: {},
+      create: {
+        id: doc.id,
+        fullName: doc.fullName,
+        email: doc.email,
+        mobile: doc.mobile,
+        qualification: doc.qualification,
+        experienceYears: doc.experienceYears,
+        consultationFee: doc.consultationFee,
+        bio_en: doc.bio_en,
+        bio_hi: doc.bio_hi,
+        verificationStatus: doc.verificationStatus,
+        user: {
+          create: {
+            email: doc.email,
+            mobile: doc.mobile,
+            passwordHash: 'mock_password_hash',
+            role: 'DOCTOR',
+          }
+        }
+      }
+    });
+  }
+
+  console.log('Seeding completed successfully!');
+}
+
+main()
+  .catch(e => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

@@ -64,6 +64,8 @@ export default function AppointmentPage({ params }: { params: { locale: string }
   const [consent, setConsent] = useState<boolean>(true);
   const [otpSent, setOtpSent] = useState<boolean>(false);
   const [otpInput, setOtpInput] = useState<string>('');
+  const [expectedOtp, setExpectedOtp] = useState<string>('');
+  const [isMockOtp, setIsMockOtp] = useState<boolean>(false);
   const [bookingConfirmed, setBookingConfirmed] = useState<boolean>(false);
 
   // Result state
@@ -89,7 +91,12 @@ export default function AppointmentPage({ params }: { params: { locale: string }
     }
     const res = await sendEmailOtp(patientEmail);
     if (res.success) {
+      setExpectedOtp(res.otp || '');
+      setIsMockOtp(res.isMock || false);
       setOtpSent(true);
+      if (res.isMock) {
+        alert(`Demo Mode: Your OTP is ${res.otp}`);
+      }
     }
   };
 
@@ -367,18 +374,25 @@ export default function AppointmentPage({ params }: { params: { locale: string }
           ) : (
             <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl space-y-3">
               <span className="text-xs font-bold text-primary block">
-                {locale === 'hi' ? 'ईमेल ओटीपी दर्ज करें (परीक्षण ओटीपी: 123456)' : 'Enter Email OTP (Demo OTP: 123456)'}
+                {locale === 'hi' ? 'ईमेल ओटीपी दर्ज करें' : 'Enter Email OTP'}
+                {isMockOtp && <span className="text-red-500 ml-2">(Demo OTP: {expectedOtp})</span>}
               </span>
               <div className="flex space-x-2">
                 <input
                   type="text"
                   value={otpInput}
                   onChange={(e) => setOtpInput(e.target.value)}
-                  placeholder="123456"
+                  placeholder="Enter 6-digit OTP"
                   className="px-3 py-2 border border-gray-300 rounded-xl text-xs font-mono w-36 focus:outline-none"
                 />
                 <button
-                  onClick={handleConfirmBooking}
+                  onClick={() => {
+                    if (otpInput === expectedOtp) {
+                      handleConfirmBooking();
+                    } else {
+                      alert(locale === 'hi' ? 'गलत ओटीपी, कृपया पुनः प्रयास करें' : 'Invalid OTP, please try again');
+                    }
+                  }}
                   className="bg-success text-white px-5 py-2 rounded-xl text-xs font-bold shadow hover:bg-green-700"
                 >
                   {messages.booking.verifyOtp}

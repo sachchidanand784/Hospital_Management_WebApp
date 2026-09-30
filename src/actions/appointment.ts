@@ -8,6 +8,7 @@ import nodemailer from 'nodemailer';
 
 export async function sendEmailOtp(email: string) {
   try {
+    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT || '587'),
@@ -21,27 +22,29 @@ export async function sendEmailOtp(email: string) {
       from: process.env.SMTP_FROM || 'Prayag Eye Care <noreply@prayageyecare.com>',
       to: email,
       subject: 'Verify your email - Prayag Eye Care',
-      text: `Hello,\n\nPlease verify your email to continue your appointment booking. Your verification code is: 123456\n\nThank you,\nPrayag Eye Care`,
+      text: `Hello,\n\nPlease verify your email to continue your appointment booking. Your verification code is: ${generatedOtp}\n\nThank you,\nPrayag Eye Care`,
       html: `
         <div style="font-family: sans-serif; padding: 20px; color: #333;">
           <h2 style="color: #0d9488;">Prayag Eye Care</h2>
           <p>Hello,</p>
           <p>Please verify your email to continue your appointment booking. Your verification code is:</p>
-          <h1 style="letter-spacing: 5px; color: #0f766e;">123456</h1>
+          <h1 style="letter-spacing: 5px; color: #0f766e;">${generatedOtp}</h1>
           <p>If you did not request this, please ignore this email.</p>
           <p>Thank you,<br/>Prayag Eye Care</p>
         </div>
       `,
     };
 
+    let isMock = false;
     if (process.env.SMTP_USER && process.env.SMTP_PASS && process.env.SMTP_USER !== 'your_email@gmail.com') {
       await transporter.sendMail(mailOptions);
       console.log(`[Email OTP] Sent real email to ${email}`);
     } else {
-      console.log(`[Email OTP] Mock sending OTP 123456 to ${email} (SMTP credentials not set)`);
+      isMock = true;
+      console.log(`[Email OTP] Mock sending OTP ${generatedOtp} to ${email} (SMTP credentials not set)`);
     }
 
-    return { success: true };
+    return { success: true, otp: generatedOtp, isMock };
   } catch (error) {
     console.error('Failed to send email:', error);
     // Still return success true for demo purposes so it doesn't block if credentials fail
