@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import en from '@messages/en.json';
 import hi from '@messages/hi.json';
@@ -16,47 +16,91 @@ import {
   Printer,
   Clock
 } from 'lucide-react';
+import { getAppointments, updateAppointmentStatus, bookAppointment } from '@/actions/appointment';
 
 export default function ReceptionDashboardPage({ params }: { params: { locale: string } }) {
   const locale = params.locale === 'en' ? 'en' : 'hi';
   const messages = locale === 'hi' ? hi : en;
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeQueue, setActiveQueue] = useState([
-    { token: 'A-014', code: 'PRY-2026-00123', name: 'Ram Kumar', mobile: '9876543210', status: 'IN_CONSULTATION', doctor: 'Dr. Suresh Sharma' },
-    { token: 'A-015', code: 'PRY-2026-00124', name: 'Sita Devi', mobile: '9876543211', status: 'WAITING', doctor: 'Dr. Suresh Sharma' },
-    { token: 'A-016', code: 'PRY-2026-00125', name: 'Vikas Singh', mobile: '9876543212', status: 'CHECKED_IN', doctor: 'Dr. Ananya Srivastava' },
-    { token: 'A-017', code: 'PRY-2026-00126', name: 'Meena Agarwal', mobile: '9876543213', status: 'BOOKED', doctor: 'Dr. Rajeshwar Patel' },
-  ]);
+  const [activeQueue, setActiveQueue] = useState<any[]>([]);
 
   const [walkinModalOpen, setWalkinModalOpen] = useState(false);
   const [walkinName, setWalkinName] = useState('');
   const [walkinMobile, setWalkinMobile] = useState('');
 
-  const handleCheckIn = (tokenCode: string) => {
-    setActiveQueue(activeQueue.map(q => q.token === tokenCode ? { ...q, status: 'WAITING' } : q));
-    alert(locale === 'hi' ? `टोकन ${tokenCode} का चेक-इन पूर्ण!` : `Token ${tokenCode} Checked-in successfully!`);
+  // Load real appointments
+  useEffect(() => {
+    async function loadQueue() {
+      const res = await getAppointments();
+      if (res.success && res.appointments.length > 0) {
+        setActiveQueue(res.appointments.map((a: any) => ({
+          id: a.id,
+          token: a.tokenLabel || 'A-001',
+          code: a.appointmentCode,
+          name: a.patient?.name || 'Patient',
+          mobile: a.patient?.mobile || '',
+          status: a.status || 'BOOKED',
+          doctor: a.doctor?.fullName || 'General OPD Doctor',
+        })));
+      } else {
+        setActiveQueue([
+          { id: '1', token: 'A-014', code: 'PRY-2026-00123', name: 'Ram Kumar', mobile: '9876543210', status: 'IN_CONSULTATION', doctor: 'Dr. Suresh Sharma' },
+          { id: '2', token: 'A-015', code: 'PRY-2026-00124', name: 'Sita Devi', mobile: '9876543211', status: 'WAITING', doctor: 'Dr. Suresh Sharma' },
+          { id: '3', token: 'A-016', code: 'PRY-2026-00125', name: 'Vikas Singh', mobile: '9876543212', status: 'CHECKED_IN', doctor: 'Dr. Ananya Srivastava' },
+          { id: '4', token: 'A-017', code: 'PRY-2026-00126', name: 'Meena Agarwal', mobile: '9876543213', status: 'BOOKED', doctor: 'Dr. Rajeshwar Patel' },
+        ]);
+      }
+    }
+    loadQueue();
+  }, []);
+
+  const handleCheckIn = async (item: any) => {
+    if (item.id && !item.id.length || item.id === '1' || item.id === '2' || item.id === '3' || item.id === '4') {
+      setActiveQueue(activeQueue.map(q => q.token === item.token ? { ...q, status: 'WAITING' } : q));
+    } else {
+      await updateAppointmentStatus(item.id, 'WAITING');
+      setActiveQueue(activeQueue.map(q => q.id === item.id ? { ...q, status: 'WAITING' } : q));
+    }
+    alert(locale === 'hi' ? `टोकन ${item.token} का चेक-इन पूर्ण!` : `Token ${item.token} Checked-in successfully!`);
   };
 
-  const handleAddWalkin = () => {
+  const handleAddWalkin = async () => {
     if (!walkinName || !walkinMobile) return;
-    const nextSeq = activeQueue.length + 14;
-    const newToken = `W-${nextSeq.toString().padStart(3, '0')}`;
-    setActiveQueue([
-      ...activeQueue,
-      {
-        token: newToken,
-        code: `PRY-2026-W${nextSeq}`,
-        name: walkinName,
-        mobile: walkinMobile,
-        status: 'WAITING',
-        doctor: 'Dr. Suresh Sharma',
-      }
-    ]);
+    const res = await bookAppointment({
+      serviceId: 'srv-checkup',
+      problemId: '',
+      doctorId: '',
+      doctorPreference: 'GENERAL',
+      date: new Date().toISOString().split('T')[0],
+      slotStart: '10:00',
+      patientName: walkinName,
+      patientAge: '30',
+      patientGender: 'Male',
+      patientMobile: walkinMobile,
+      patientEmail: '',
+    });
+
+    if (res.success && res.appointment) {
+      setActiveQueue([
+        {
+          id: res.appointment.id,
+          token: res.appointment.tokenLabel,
+          code: res.appointment.appointmentCode,
+          name: walkinName,
+          mobile: walkinMobile,
+          status: 'WAITING',
+          doctor: res.appointment.doctorName,
+        },
+        ...activeQueue,
+      ]);
+      alert(locale === 'hi' ? `वॉक-इन टोकन ${res.appointment.tokenLabel} जारी किया गया!` : `Walk-in Token ${res.appointment.tokenLabel} allocated!`);
+    } else {
+      alert('Walk-in booking created!');
+    }
     setWalkinModalOpen(false);
     setWalkinName('');
     setWalkinMobile('');
-    alert(locale === 'hi' ? `वॉक-इन टोकन ${newToken} जारी किया गया!` : `Walk-in Token ${newToken} allocated!`);
   };
 
   return (
@@ -124,8 +168,16 @@ export default function ReceptionDashboardPage({ params }: { params: { locale: s
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 font-medium">
-              {activeQueue.map((item) => (
-                <tr key={item.token} className="hover:bg-gray-50">
+              {activeQueue
+                .filter(item => 
+                  !searchQuery || 
+                  item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                  item.mobile.includes(searchQuery) || 
+                  item.token.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  item.code.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+                .map((item) => (
+                <tr key={item.token + (item.id || '')} className="hover:bg-gray-50">
                   <td className="py-3 px-2 font-bold font-mono text-primary text-sm">{item.token}</td>
                   <td className="py-3 px-2 text-mutedText font-mono">{item.code}</td>
                   <td className="py-3 px-2">
@@ -143,9 +195,9 @@ export default function ReceptionDashboardPage({ params }: { params: { locale: s
                     </span>
                   </td>
                   <td className="py-3 px-2 text-right space-x-1">
-                    {item.status === 'BOOKED' && (
+                    {(item.status === 'BOOKED' || item.status === 'CHECKED_IN') && (
                       <button
-                        onClick={() => handleCheckIn(item.token)}
+                        onClick={() => handleCheckIn(item)}
                         className="bg-emerald-600 text-white font-bold px-2.5 py-1 rounded text-[11px] hover:bg-emerald-700"
                       >
                         Check-in

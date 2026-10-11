@@ -64,9 +64,10 @@ export async function bookAppointment(data: {
   patientGender: string;
   patientMobile: string;
   patientEmail: string;
+  patientAddress?: string;
 }) {
   try {
-    // 1. Find or create patient
+    // 1. Find or create patient with real data
     let patient = await prisma.patient.findFirst({
       where: { mobile: data.patientMobile }
     });
@@ -79,57 +80,187 @@ export async function bookAppointment(data: {
           uhid,
           name: data.patientName,
           age: parseInt(data.patientAge) || 0,
-          gender: data.patientGender,
+          gender: data.patientGender || 'Male',
           mobile: data.patientMobile,
-          email: data.patientEmail,
+          email: data.patientEmail || null,
+          address: data.patientAddress || 'Prayagraj',
+        }
+      });
+    } else {
+      // Update patient profile if needed
+      patient = await prisma.patient.update({
+        where: { id: patient.id },
+        data: {
+          name: data.patientName || patient.name,
+          age: parseInt(data.patientAge) || patient.age,
+          gender: data.patientGender || patient.gender,
+          email: data.patientEmail || patient.email,
         }
       });
     }
 
-    // 2. Generate Appointment Code
-    const appointmentCode = `PRY-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+    // 2. Resolve Doctor (if preference is GENERAL, assign first available doctor)
+    let assignedDoctorId = data.doctorPreference === 'SPECIFIC' && data.doctorId ? data.doctorId : null;
+    if (!assignedDoctorId) {
+      const anyDoctor = await prisma.doctor.findFirst({
+        where: { verificationStatus: 'VERIFIED' }
+      });
+      assignedDoctorId = anyDoctor ? anyDoctor.id : null;
+    }
 
-    // 3. Allocate token (Using a mock allocation logic via token-engine for demo)
-    const tokenRes = allocateToken({
-      prefix: 'A',
-      lastSeq: Math.floor(Math.random() * 20),
-      slotIndex: 2,
-      capacityPerSlot: 3,
+    // 3. Calculate sequential Token for this doctor and date
+    const appointmentDate = new Date(data.date);
+    const startOfDay = new Date(appointmentDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(appointmentDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const existingCount = await prisma.appointment.count({
+      where: {
+        date: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+        ...(assignedDoctorId ? { doctorId: assignedDoctorId } : {}),
+      }
     });
 
-    // 4. Calculate ETA
+    const nextSeq = existingCount + 1;
+    const prefix = data.doctorPreference === 'SPECIFIC' ? 'A' : 'G';
+    const tokenLabel = `${prefix}-${String(nextSeq).padStart(3, '0')}`;
+
+    // 4. Generate unique Appointment Code
+    const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+    const appointmentCode = `PRY-${appointmentDate.getFullYear()}-${randomSuffix}`;
+
+    // 5. Calculate Smart ETA
     const eta = calculateETAWindow({
-      patientsAhead: 3,
+      patientsAhead: existingCount,
       avgConsultMin: 15,
       currentTime: new Date(),
     });
 
-    // 5. Create Appointment
+    // 6. Save actual Appointment in database
     const appointment = await prisma.appointment.create({
       data: {
         appointmentCode,
         patientId: patient.id,
         serviceId: data.serviceId,
         problemId: data.problemId || null,
-        doctorId: data.doctorPreference === 'SPECIFIC' ? data.doctorId : null,
-        type: data.doctorPreference,
-        date: new Date(data.date),
-        slotStart: data.slotStart,
-        slotEnd: '17:00', // Mock end
-        tokenSeq: parseInt(tokenRes.tokenLabel.split('-')[1]) || 1,
-        tokenLabel: tokenRes.tokenLabel,
-        status: 'BOOKED'
+        doctorId: assignedDoctorId,
+        type: data.doctorPreference || 'SPECIFIC',
+        date: appointmentDate,
+        slotStart: data.slotStart || '09:00',
+        slotEnd: '17:00',
+        tokenSeq: nextSeq,
+        tokenLabel: tokenLabel,
+        status: 'BOOKED',
+        source: 'ONLINE',
+      },
+      include: {
+        patient: true,
+        doctor: true,
+        service: true,
       }
     });
 
     return { 
       success: true, 
-      appointmentCode, 
-      allocatedToken: tokenRes.tokenLabel,
-      etaResult: eta 
+      appointmentCode: appointment.appointmentCode, 
+      allocatedToken: appointment.tokenLabel,
+      etaResult: eta,
+      appointment: {
+        id: appointment.id,
+        appointmentCode: appointment.appointmentCode,
+        tokenLabel: appointment.tokenLabel,
+        patientName: patient.name,
+        doctorName: appointment.doctor?.fullName || 'General OPD Doctor',
+        date: data.date,
+        slotStart: data.slotStart,
+      }
     };
   } catch (error) {
     console.error('Failed to book appointment:', error);
     return { success: false, error: 'Failed to book appointment' };
+  }
+}
+
+export async function getAppointments(filters?: { doctorId?: string; date?: string; status?: string }) {
+  try {
+    const whereClause: any = {};
+    if (filters?.doctorId) {
+      whereClause.doctorId = filters.doctorId;
+    }
+    if (filters?.status) {
+      whereClause.status = filters.status;
+    }
+    if (filters?.date) {
+      const d = new Date(filters.date);
+      const start = new Date(d);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(d);
+      end.setHours(23, 59, 59, 999);
+      whereClause.date = { gte: start, lte: end };
+    }
+
+    const appointments = await prisma.appointment.findMany({
+      where: whereClause,
+      include: {
+        patient: true,
+        doctor: true,
+        service: true,
+        problem: true,
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return { success: true, appointments };
+  } catch (error) {
+    console.error('Error fetching appointments:', error);
+    return { success: false, appointments: [] };
+  }
+}
+
+export async function getAppointmentByCodeOrMobile(query: string) {
+  try {
+    const trimmed = query.trim();
+    const appointment = await prisma.appointment.findFirst({
+      where: {
+        OR: [
+          { appointmentCode: { equals: trimmed, mode: 'insensitive' } },
+          { tokenLabel: { equals: trimmed, mode: 'insensitive' } },
+          { patient: { mobile: trimmed } }
+        ]
+      },
+      include: {
+        patient: true,
+        doctor: true,
+        service: true,
+        problem: true,
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (!appointment) {
+      return { success: false, error: 'Appointment not found' };
+    }
+
+    return { success: true, appointment };
+  } catch (error) {
+    console.error('Error searching appointment:', error);
+    return { success: false, error: 'Error searching appointment' };
+  }
+}
+
+export async function updateAppointmentStatus(appointmentId: string, status: any) {
+  try {
+    const updated = await prisma.appointment.update({
+      where: { id: appointmentId },
+      data: { status }
+    });
+    return { success: true, appointment: updated };
+  } catch (error) {
+    console.error('Error updating appointment status:', error);
+    return { success: false, error: 'Failed to update status' };
   }
 }

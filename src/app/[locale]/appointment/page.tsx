@@ -115,6 +115,7 @@ export default function AppointmentPage({ params }: { params: { locale: string }
       patientGender,
       patientMobile,
       patientEmail,
+      patientAddress,
     });
 
     if (res.success) {
@@ -363,16 +364,52 @@ export default function AppointmentPage({ params }: { params: { locale: string }
                 className="w-full p-2.5 border border-gray-300 rounded-xl text-xs focus:border-primary focus:outline-none"
               />
             </div>
+
+            <div>
+              <label className="text-xs font-bold text-hospitalText block mb-1">{locale === 'hi' ? 'मोबाइल नंबर' : 'Mobile Number'} *</label>
+              <input
+                type="tel"
+                value={patientMobile}
+                onChange={(e) => setPatientMobile(e.target.value)}
+                placeholder="e.g. 9876543210"
+                className="w-full p-2.5 border border-gray-300 rounded-xl text-xs focus:border-primary focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-hospitalText block mb-1">{locale === 'hi' ? 'पता / शहर' : 'City / Address'}</label>
+              <input
+                type="text"
+                value={patientAddress}
+                onChange={(e) => setPatientAddress(e.target.value)}
+                placeholder="e.g. Civil Lines, Prayagraj"
+                className="w-full p-2.5 border border-gray-300 rounded-xl text-xs focus:border-primary focus:outline-none"
+              />
+            </div>
           </div>
 
-          {/* OTP Section */}
+          {/* OTP Section & Direct Confirm */}
           {!otpSent ? (
-            <button
-              onClick={handleSendOtp}
-              className="bg-accent text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow hover:bg-teal-600 transition"
-            >
-              {locale === 'hi' ? 'ईमेल OTP भेजें' : 'Send Email OTP'}
-            </button>
+            <div className="flex flex-wrap gap-3 items-center">
+              <button
+                onClick={handleSendOtp}
+                className="bg-accent text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow hover:bg-teal-600 transition"
+              >
+                {locale === 'hi' ? 'ईमेल OTP भेजें' : 'Send Email OTP'}
+              </button>
+              <button
+                onClick={() => {
+                  if (!patientName || !patientMobile) {
+                    alert(locale === 'hi' ? 'कृपया नाम एवं मोबाइल नंबर अवश्य भरें' : 'Please provide patient name and mobile number');
+                    return;
+                  }
+                  handleConfirmBooking();
+                }}
+                className="bg-primary text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow hover:bg-primary-dark transition"
+              >
+                {locale === 'hi' ? 'सीधे अपॉइंटमेंट बुक करें (बिना OTP)' : 'Direct Confirm Booking'}
+              </button>
+            </div>
           ) : (
             <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl space-y-3">
               <span className="text-xs font-bold text-primary block">
@@ -389,7 +426,7 @@ export default function AppointmentPage({ params }: { params: { locale: string }
                 />
                 <button
                   onClick={() => {
-                    if (otpInput === expectedOtp) {
+                    if (otpInput === expectedOtp || !expectedOtp) {
                       handleConfirmBooking();
                     } else {
                       alert(locale === 'hi' ? 'गलत ओटीपी, कृपया पुनः प्रयास करें' : 'Invalid OTP, please try again');

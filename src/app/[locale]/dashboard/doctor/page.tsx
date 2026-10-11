@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import en from '@messages/en.json';
 import hi from '@messages/hi.json';
 import {
@@ -15,22 +15,25 @@ import {
   AlertTriangle,
   ArrowRight
 } from 'lucide-react';
+import { getAppointments, updateAppointmentStatus } from '@/actions/appointment';
 
 export default function DoctorDashboardPage({ params }: { params: { locale: string } }) {
   const locale = params.locale === 'en' ? 'en' : 'hi';
   const messages = locale === 'hi' ? hi : en;
 
   const [activeTab, setActiveTab] = useState<'QUEUE' | 'CONSULTATION' | 'SCHEDULE'>('QUEUE');
+  const [queueList, setQueueList] = useState<any[]>([]);
   const [currentPatient, setCurrentPatient] = useState<any>({
-    token: 'A-014',
+    token: 'A-001',
     name: 'Ram Kumar',
     age: 45,
     gender: 'Male',
     service: 'General Eye Examination',
     refraction: 'Right: SPH -1.25 / CYL -0.50 AXIS 90 | Left: SPH -1.00',
+    id: null,
   });
 
-  const [findings, setFindings] = useState('Bilateral mild early nuclear cataract cataract; intraocular pressure normal.');
+  const [findings, setFindings] = useState('Bilateral mild early nuclear cataract; intraocular pressure normal.');
   const [diagnosis, setDiagnosis] = useState('Early Cataract (Nuclear Sclerosis Grade 1)');
   const [treatmentPlan, setTreatmentPlan] = useState('Glasses prescribed for near vision; follow up after 6 months.');
   const [medicines, setMedicines] = useState([
@@ -40,13 +43,48 @@ export default function DoctorDashboardPage({ params }: { params: { locale: stri
   const [leaveModalOpen, setLeaveModalOpen] = useState(false);
   const [leaveDate, setLeaveDate] = useState('2026-10-05');
 
+  // Load real appointments for doctor queue
+  useEffect(() => {
+    async function loadDoctorQueue() {
+      const res = await getAppointments();
+      if (res.success && res.appointments.length > 0) {
+        const mapped = res.appointments.map((a: any) => ({
+          id: a.id,
+          token: a.tokenLabel || 'A-001',
+          name: a.patient?.name || 'Patient',
+          age: a.patient?.age || 30,
+          gender: a.patient?.gender || 'Male',
+          service: a.service?.name_en || 'Eye Consultation',
+          status: a.status || 'WAITING',
+          refraction: 'Visual Acuity: 6/6 | NCT IOP: 14 mmHg (Normal)'
+        }));
+        setQueueList(mapped);
+        if (mapped.length > 0) {
+          setCurrentPatient(mapped[0]);
+        }
+      } else {
+        // Fallback default queue
+        setQueueList([
+          { id: '1', token: 'A-014', name: 'Ram Kumar', age: 45, gender: 'Male', status: 'IN_CONSULTATION', service: 'General Checkup', refraction: 'Right: SPH -1.25 / CYL -0.50 | Left: SPH -1.00' },
+          { id: '2', token: 'A-015', name: 'Sita Devi', age: 62, gender: 'Female', status: 'WAITING', service: 'Cataract Follow-up', refraction: 'Bilateral Pseudophakia' },
+          { id: '3', token: 'A-016', name: 'Vikas Singh', age: 28, gender: 'Male', status: 'CHECKED_IN', service: 'Vision Test', refraction: 'Myopia SPH -2.50 both eyes' },
+        ]);
+      }
+    }
+    loadDoctorQueue();
+  }, []);
+
   const handleAiScribe = () => {
     alert(locale === 'hi' ? 'एआई स्क्रैब: आवाज/नोट्स से क्लिनिकल ड्राफ्ट तैयार किया गया।' : 'AI Scribe: Drafted clinical notes from voice dictation.');
     setFindings('Patient complains of mild glare during night driving. Slit lamp exam shows nuclear sclerosis grade 1.');
     setDiagnosis('Early Nuclear Cataract & Presbyopia');
   };
 
-  const handleCompleteConsultation = () => {
+  const handleCompleteConsultation = async () => {
+    if (currentPatient?.id) {
+      await updateAppointmentStatus(currentPatient.id, 'COMPLETED');
+      setQueueList(prev => prev.map(q => q.id === currentPatient.id ? { ...q, status: 'COMPLETED' } : q));
+    }
     alert(locale === 'hi' ? 'परामर्श पूर्ण! पर्ची मेडिकल स्टोर और चश्मा घर को भेज दी गई।' : 'Consultation Completed! Prescription sent to Pharmacy & Optical.');
     setActiveTab('QUEUE');
   };
@@ -67,7 +105,7 @@ export default function DoctorDashboardPage({ params }: { params: { locale: stri
             onClick={() => setActiveTab('QUEUE')}
             className={`px-4 py-2 rounded-lg transition ${activeTab === 'QUEUE' ? 'bg-white text-primary shadow' : 'text-white hover:bg-white/20'}`}
           >
-            Today's Queue (12)
+            Today's Queue ({queueList.length})
           </button>
           <button
             onClick={() => setActiveTab('CONSULTATION')}
@@ -90,27 +128,31 @@ export default function DoctorDashboardPage({ params }: { params: { locale: stri
           <div className="flex justify-between items-center border-b border-gray-100 pb-3">
             <h2 className="text-lg font-bold text-primary-dark">Active Queue Board (Room 102)</h2>
             <button
-              onClick={() => setActiveTab('CONSULTATION')}
+              onClick={() => {
+                const nextPatient = queueList.find(q => q.status === 'WAITING' || q.status === 'CHECKED_IN') || queueList[0];
+                if (nextPatient) {
+                  setCurrentPatient(nextPatient);
+                  if (nextPatient.id) {
+                    updateAppointmentStatus(nextPatient.id, 'IN_CONSULTATION');
+                  }
+                }
+                setActiveTab('CONSULTATION');
+              }}
               className="bg-accent text-white px-4 py-2 rounded-xl text-xs font-bold shadow hover:bg-teal-600 flex items-center"
             >
-              Call Next Patient (A-014) <ArrowRight className="w-4 h-4 ml-1" />
+              Call Next Patient ({queueList.find(q => q.status === 'WAITING' || q.status === 'CHECKED_IN')?.token || queueList[0]?.token || 'None'}) <ArrowRight className="w-4 h-4 ml-1" />
             </button>
           </div>
 
           <div className="space-y-3">
-            {[
-              { token: 'A-014', name: 'Ram Kumar', age: 45, status: 'IN_CONSULTATION', service: 'General Checkup' },
-              { token: 'A-015', name: 'Sita Devi', age: 62, status: 'WAITING', service: 'Cataract Follow-up' },
-              { token: 'A-016', name: 'Vikas Singh', age: 28, status: 'CHECKED_IN', service: 'Vision Test' },
-              { token: 'A-017', name: 'Meena Agarwal', age: 54, status: 'WAITING', service: 'Retina Checkup' },
-            ].map((pt) => (
-              <div key={pt.token} className="p-4 rounded-xl border border-gray-200 bg-white flex justify-between items-center">
+            {queueList.map((pt) => (
+              <div key={pt.token + pt.id} className="p-4 rounded-xl border border-gray-200 bg-white flex justify-between items-center hover:border-primary/50 transition">
                 <div className="flex items-center space-x-4">
                   <div className="text-xl font-extrabold font-mono text-primary bg-primary/10 px-3 py-1.5 rounded-lg">
                     {pt.token}
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm text-primary-dark">{pt.name} ({pt.age} yrs)</h3>
+                    <h3 className="font-bold text-sm text-primary-dark">{pt.name} ({pt.age} yrs {pt.gender})</h3>
                     <span className="text-xs text-mutedText">{pt.service}</span>
                   </div>
                 </div>
@@ -122,8 +164,14 @@ export default function DoctorDashboardPage({ params }: { params: { locale: stri
                     {pt.status}
                   </span>
                   <button
-                    onClick={() => setActiveTab('CONSULTATION')}
-                    className="bg-primary text-white font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-primary-dark"
+                    onClick={() => {
+                      setCurrentPatient(pt);
+                      setActiveTab('CONSULTATION');
+                      if (pt.id) {
+                        updateAppointmentStatus(pt.id, 'IN_CONSULTATION');
+                      }
+                    }}
+                    className="bg-primary text-white font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-primary-dark shadow"
                   >
                     Open Consult
                   </button>

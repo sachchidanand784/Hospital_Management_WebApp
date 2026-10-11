@@ -14,6 +14,7 @@ import {
 import { getEmergencyRequests, updateEmergencyStatus } from '@/actions/emergency';
 import { getHospitalSettings, updateHospitalSettings } from '@/actions/hospital';
 import { getOwnerDashboardData } from '@/actions/dashboard';
+import { getAppointments } from '@/actions/appointment';
 
 type TabType = 'OVERVIEW' | 'DOCTORS' | 'STAFF' | 'SERVICES' | 'APPOINTMENTS' | 'EMERGENCY' | 'HOSPITAL' | 'REPORTS';
 
@@ -58,9 +59,30 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
   });
 
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [isRefreshingApt, setIsRefreshingApt] = useState(false);
+
+  const fetchLiveAppointments = async () => {
+    setIsRefreshingApt(true);
+    const aptRes = await getAppointments();
+    if (aptRes.success && aptRes.appointments.length > 0) {
+      setAppointments(aptRes.appointments.map((a: any) => ({
+        id: a.appointmentCode,
+        token: a.tokenLabel || 'A-001',
+        patient: `${a.patient?.name || 'Patient'} (${a.patient?.mobile || ''})`,
+        doctor: a.doctor?.fullName || 'General OPD',
+        service: a.service?.name_en || 'Eye Checkup',
+        status: a.status || 'BOOKED',
+        date: new Date(a.date).toLocaleDateString(),
+        time: a.slotStart || '09:00 AM',
+        raw: a
+      })));
+    }
+    setIsRefreshingApt(false);
+  };
 
   React.useEffect(() => {
-    async function loadSettings() {
+    async function loadData() {
       const res = await getHospitalSettings();
       if (res.success && res.hospital) {
         setHospitalSettings(res.hospital);
@@ -75,8 +97,14 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
         setServices(dashRes.services);
         setSpecializations(dashRes.specializations);
       }
+
+      await fetchLiveAppointments();
     }
-    loadSettings();
+    loadData();
+
+    // Auto-refresh appointments every 5 seconds so newly booked appointments appear immediately
+    const pollTimer = setInterval(fetchLiveAppointments, 5000);
+    return () => clearInterval(pollTimer);
   }, []);
 
   const handleSaveHospitalSettings = async () => {
@@ -87,16 +115,6 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
       alert(locale === 'hi' ? 'सेटिंग्स सहेजने में विफल!' : 'Failed to save settings!');
     }
   };
-
-  // Demo Appointments Data
-  const [appointments] = useState([
-    { id: 'APT-1001', token: 'A-012', patient: 'Ramesh Gupta', doctor: 'Dr. Suresh Kumar Sharma', service: 'General Eye Checkup', status: 'COMPLETED', date: '2026-09-25', time: '09:30 AM' },
-    { id: 'APT-1002', token: 'A-014', patient: 'Sunita Devi', doctor: 'Dr. Suresh Kumar Sharma', service: 'Cataract Evaluation', status: 'IN_CONSULTATION', date: '2026-09-25', time: '10:00 AM' },
-    { id: 'APT-1003', token: 'A-015', patient: 'Mohan Lal', doctor: 'Dr. Suresh Kumar Sharma', service: 'General Eye Checkup', status: 'WAITING', date: '2026-09-25', time: '10:30 AM' },
-    { id: 'APT-1004', token: 'B-003', patient: 'Priya Singh', doctor: 'Dr. Ananya Srivastava', service: 'Retinal Screening', status: 'CHECKED_IN', date: '2026-09-25', time: '09:45 AM' },
-    { id: 'APT-1005', token: 'A-016', patient: 'Vikram Yadav', doctor: 'Dr. Suresh Kumar Sharma', service: 'Cataract Evaluation', status: 'BOOKED', date: '2026-09-25', time: '11:00 AM' },
-    { id: 'APT-1006', token: 'C-001', patient: 'Anita Pandey', doctor: 'Dr. Rajeshwar Patel', service: 'Glaucoma Screening', status: 'NO_SHOW', date: '2026-09-25', time: '09:00 AM' },
-  ]);
 
   // Emergency Alerts Data
   const [emergencyAlerts, setEmergencyAlerts] = useState<any[]>([]);
@@ -282,6 +300,70 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
             </button>
           </div>
 
+          {/* Live Recent Appointments Table right on Overview */}
+          <div className="surface-card p-5 rounded-2xl shadow-card border border-hospitalBorder space-y-3">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3 flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-sm text-primary-dark flex items-center">
+                  <Calendar className="w-4 h-4 mr-2 text-primary" />
+                  {locale === 'hi' ? 'लाइव अपॉइंटमेंट सूची' : 'Live Booked Appointments'} ({appointments.length})
+                </h3>
+                <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center animate-pulse">
+                  ● Live Sync (5s)
+                </span>
+              </div>
+              <button
+                onClick={fetchLiveAppointments}
+                disabled={isRefreshingApt}
+                className="bg-primary/10 hover:bg-primary/20 text-primary font-bold px-2.5 py-1 rounded-lg text-xs flex items-center transition"
+              >
+                <Clock className="w-3.5 h-3.5 mr-1" />
+                {isRefreshingApt ? '...' : (locale === 'hi' ? 'रिफ्रेश' : 'Refresh')}
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-hospitalBg text-mutedText font-bold">
+                    <th className="text-left p-2.5 rounded-l-lg">ID</th>
+                    <th className="text-left p-2.5">Token</th>
+                    <th className="text-left p-2.5">{locale === 'hi' ? 'मरीज' : 'Patient'}</th>
+                    <th className="text-left p-2.5">{locale === 'hi' ? 'डॉक्टर' : 'Doctor'}</th>
+                    <th className="text-left p-2.5">{locale === 'hi' ? 'सेवा' : 'Service'}</th>
+                    <th className="text-left p-2.5">{locale === 'hi' ? 'तारीख व समय' : 'Date & Time'}</th>
+                    <th className="text-center p-2.5 rounded-r-lg">{locale === 'hi' ? 'स्थिति' : 'Status'}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {appointments.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="text-center p-6 text-mutedText">
+                        {locale === 'hi' ? 'कोई अपॉइंटमेंट नहीं मिला' : 'No appointments booked yet'}
+                      </td>
+                    </tr>
+                  ) : (
+                    appointments.slice(0, 10).map((apt) => (
+                      <tr key={apt.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="p-2.5 font-mono text-mutedText">{apt.id}</td>
+                        <td className="p-2.5 font-extrabold text-primary">{apt.token}</td>
+                        <td className="p-2.5 font-semibold text-primary-dark">{apt.patient}</td>
+                        <td className="p-2.5 text-mutedText">{apt.doctor}</td>
+                        <td className="p-2.5 text-mutedText">{apt.service}</td>
+                        <td className="p-2.5 text-mutedText">{apt.date} {apt.time}</td>
+                        <td className="p-2.5 text-center">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusColor[apt.status] || 'bg-gray-100 text-gray-700'}`}>
+                            {apt.status.replace('_', ' ')}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           {/* Recent Activity */}
           <div className="surface-card p-5 rounded-2xl shadow-card border border-hospitalBorder">
             <h3 className="font-bold text-sm text-primary-dark mb-3 flex items-center"><Clock className="w-4 h-4 mr-2 text-accent" />{locale === 'hi' ? 'हाल की गतिविधियां' : 'Recent Activity'}</h3>
@@ -427,9 +509,26 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
       {activeTab === 'APPOINTMENTS' && (
         <div className="space-y-6">
           <section className="surface-card p-5 rounded-2xl shadow-card border border-hospitalBorder space-y-4">
-            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-              <h2 className="text-base font-bold text-primary-dark flex items-center"><Calendar className="w-5 h-5 mr-2 text-primary" />{locale === 'hi' ? 'आज के अपॉइंटमेंट' : "Today's Appointments"}</h2>
-              <span className="text-xs text-mutedText font-semibold">{locale === 'hi' ? '25 सितम्बर 2026' : 'September 25, 2026'}</span>
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3 flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-primary-dark flex items-center">
+                  <Calendar className="w-5 h-5 mr-2 text-primary" />
+                  {locale === 'hi' ? 'अपॉइंटमेंट सूची' : "Appointments List"} ({appointments.length})
+                </h2>
+                <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center animate-pulse">
+                  ● Live Sync
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={fetchLiveAppointments}
+                  disabled={isRefreshingApt}
+                  className="bg-primary/10 hover:bg-primary/20 text-primary font-bold px-3 py-1.5 rounded-lg text-xs flex items-center transition"
+                >
+                  <Clock className="w-3.5 h-3.5 mr-1" />
+                  {isRefreshingApt ? (locale === 'hi' ? 'लोड हो रहा है...' : 'Refreshing...') : (locale === 'hi' ? 'ताज़ा करें (Refresh)' : 'Refresh Now')}
+                </button>
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
