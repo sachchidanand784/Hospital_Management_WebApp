@@ -7,9 +7,22 @@ import { Eye, MapPin, Phone, Mail, Clock, ShieldCheck } from 'lucide-react';
 interface FooterProps {
   locale: 'hi' | 'en';
   messages: any;
+  hospital?: any;
 }
 
-export const Footer: React.FC<FooterProps> = ({ locale, messages }) => {
+export const Footer: React.FC<FooterProps> = ({ locale, messages, hospital }) => {
+  const hospitalName = hospital 
+    ? (locale === 'hi' ? (hospital.name_hi || hospital.name_en) : (hospital.name_en || hospital.name_hi)) 
+    : messages.common.hospitalName;
+
+  const address = hospital?.address_en || '12/4 Civil Lines, Near MG Marg, Prayagraj, Uttar Pradesh 211001';
+  const openTime = hospital?.openTime || '09:00';
+  const closeTime = hospital?.closeTime || '18:00';
+  const closedDay = hospital?.closedDay || 'Sunday';
+  const freeCheckupDay = hospital?.freeCheckupDay || 'Tuesday';
+  const phoneText = [hospital?.phone1, hospital?.phone2].filter(Boolean).join(' / ') || '+91 98765 43210';
+  const emailText = hospital?.email || 'info@prayageyecare.com';
+
   return (
     <footer className="bg-primary-dark text-white pt-12 pb-8 border-t-4 border-accent">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
@@ -19,7 +32,7 @@ export const Footer: React.FC<FooterProps> = ({ locale, messages }) => {
             <div className="bg-accent text-white p-2 rounded-xl">
               <Eye className="w-6 h-6" />
             </div>
-            <span className="text-xl font-bold tracking-tight">{messages.common.hospitalName}</span>
+            <span className="text-xl font-bold tracking-tight">{hospitalName}</span>
           </div>
           <p className="text-gray-300 text-xs leading-relaxed">
             {locale === 'hi'
@@ -54,13 +67,24 @@ export const Footer: React.FC<FooterProps> = ({ locale, messages }) => {
           <ul className="space-y-2 text-xs text-gray-300">
             <li className="flex items-center space-x-2">
               <Clock className="w-4 h-4 text-cyan-400 shrink-0" />
-              <span>{locale === 'hi' ? 'सोमवार - शनिवार: सुबह 9:00 - शाम 5:00' : 'Mon - Sat: 9:00 AM - 5:00 PM'}</span>
+              <span>
+                {locale === 'hi' 
+                  ? `ओपीडी समय: सुबह ${openTime} - शाम ${closeTime}` 
+                  : `OPD Hours: ${openTime} - ${closeTime}`}
+              </span>
             </li>
-            <li className="text-amber-300 font-semibold pl-6">
-              {locale === 'hi' ? 'मंगलवार: निःशुल्क ओपीडी जांच' : 'Tuesday: Free General OPD Day'}
-            </li>
-            <li className="flex items-center space-x-2 text-red-400 font-bold pt-1">
-              <Clock className="w-4 h-4 text-red-400 shrink-0" />
+            {closedDay && closedDay !== 'None' && (
+              <li className="text-red-300 text-[11px] font-semibold pl-6">
+                {locale === 'hi' ? `साप्ताहिक अवकाश: ${closedDay}` : `Weekly Holiday: ${closedDay}`}
+              </li>
+            )}
+            {freeCheckupDay && freeCheckupDay !== 'None' && (
+              <li className="text-amber-300 font-semibold pl-6">
+                {locale === 'hi' ? `${freeCheckupDay}: निःशुल्क ओपीडी जांच` : `${freeCheckupDay}: Free General OPD Day`}
+              </li>
+            )}
+            <li className="flex items-center space-x-2 text-emerald-400 font-bold pt-1">
+              <Clock className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>{messages.common.emergency24x7}</span>
             </li>
           </ul>
@@ -74,15 +98,15 @@ export const Footer: React.FC<FooterProps> = ({ locale, messages }) => {
           <ul className="space-y-2.5 text-xs text-gray-300">
             <li className="flex items-start space-x-2">
               <MapPin className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-              <span>12/4 Civil Lines, Near MG Marg, Prayagraj, Uttar Pradesh 211001</span>
+              <span>{address}</span>
             </li>
             <li className="flex items-center space-x-2">
               <Phone className="w-4 h-4 text-cyan-400 shrink-0" />
-              <span>+91 98765 43210 / 0532-2400112</span>
+              <span>{phoneText}</span>
             </li>
             <li className="flex items-center space-x-2">
               <Mail className="w-4 h-4 text-cyan-400 shrink-0" />
-              <span>info@prayageyecare.com</span>
+              <span>{emailText}</span>
             </li>
           </ul>
         </div>

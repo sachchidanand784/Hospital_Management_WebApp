@@ -56,6 +56,11 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
     phone2: '',
     emergencyPhone: '',
     emergency24x7: true,
+    openTime: '09:00',
+    closeTime: '18:00',
+    closedDay: 'Sunday',
+    freeCheckupDay: 'Tuesday',
+    freeCheckupEnabled: true,
   });
 
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
@@ -606,8 +611,85 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
                 </div>
               </div>
             </div>
+
+            {/* ── Additional Operational Timings & Rules ── */}
             <div className="pt-4 border-t border-gray-100">
-              <button onClick={handleSaveHospitalSettings} className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow transition">{locale === 'hi' ? 'सेटिंग्स सहेजें' : 'Save Settings'}</button>
+              <h3 className="text-xs font-bold text-primary uppercase tracking-wider mb-3">
+                {locale === 'hi' ? 'अस्पताल समय सारिणी एवं नियम (OPD Timings & Free Checkup)' : 'Hospital OPD Timings & Rules'}
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-hospitalBg p-4 rounded-xl border border-gray-200">
+                <div>
+                  <label className="text-[11px] font-bold text-primary-dark block mb-1">
+                    {locale === 'hi' ? 'खुलने का समय (Opening Time)' : 'Opening Time'}
+                  </label>
+                  <input
+                    type="time"
+                    value={hospitalSettings.openTime}
+                    onChange={(e) => setHospitalSettings({ ...hospitalSettings, openTime: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-bold focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-primary-dark block mb-1">
+                    {locale === 'hi' ? 'बंद होने का समय (Closing Time)' : 'Closing Time'}
+                  </label>
+                  <input
+                    type="time"
+                    value={hospitalSettings.closeTime}
+                    onChange={(e) => setHospitalSettings({ ...hospitalSettings, closeTime: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-bold focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-primary-dark block mb-1">
+                    {locale === 'hi' ? 'साप्ताहिक अवकाश (Closed Day)' : 'Weekly Closed Day'}
+                  </label>
+                  <select
+                    value={hospitalSettings.closedDay}
+                    onChange={(e) => setHospitalSettings({ ...hospitalSettings, closedDay: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-bold focus:border-primary focus:outline-none"
+                  >
+                    <option value="Sunday">Sunday (रविवार)</option>
+                    <option value="Monday">Monday (सोमवार)</option>
+                    <option value="Tuesday">Tuesday (मंगलवार)</option>
+                    <option value="Wednesday">Wednesday (बुधवार)</option>
+                    <option value="Thursday">Thursday (गुरुवार)</option>
+                    <option value="Friday">Friday (शुक्रवार)</option>
+                    <option value="Saturday">Saturday (शनिवार)</option>
+                    <option value="None">None / 7 Days Open (सातों दिन खुला)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-primary-dark block mb-1">
+                    {locale === 'hi' ? 'मुफ्त जांच का दिन (Free OPD Day)' : 'Free Checkup Day'}
+                  </label>
+                  <select
+                    value={hospitalSettings.freeCheckupDay}
+                    onChange={(e) => setHospitalSettings({ ...hospitalSettings, freeCheckupDay: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-bold focus:border-primary focus:outline-none"
+                  >
+                    <option value="Tuesday">Tuesday (मंगलवार)</option>
+                    <option value="Thursday">Thursday (गुरुवार)</option>
+                    <option value="Saturday">Saturday (शनिवार)</option>
+                    <option value="Sunday">Sunday (रविवार)</option>
+                    <option value="Daily">Daily (प्रतिदिन)</option>
+                    <option value="None">None (कोई नहीं)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-gray-100 flex items-center justify-between flex-wrap gap-2">
+              <button onClick={handleSaveHospitalSettings} className="bg-primary hover:bg-primary-dark text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow transition flex items-center">
+                <CheckCircle className="w-4 h-4 mr-1.5" />
+                {locale === 'hi' ? 'सेटिंग्स सहेजें (Save Settings)' : 'Save Settings'}
+              </button>
+              <span className="text-[11px] text-mutedText font-medium">
+                ✓ {locale === 'hi' ? 'यह जानकारी होमपेज, नेवबार एवं फुटर पर तुरंत लाइव प्रदर्शित होगी' : 'Changes reflect immediately on homepage, navbar & footer'}
+              </span>
             </div>
           </section>
         </div>

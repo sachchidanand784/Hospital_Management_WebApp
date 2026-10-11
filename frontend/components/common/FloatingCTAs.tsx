@@ -7,9 +7,10 @@ import { Calendar } from 'lucide-react';
 interface FloatingCTAsProps {
   locale: 'hi' | 'en';
   messages: any;
+  hospital?: any;
 }
 
-export const FloatingCTAs: React.FC<FloatingCTAsProps> = ({ locale, messages }) => {
+export const FloatingCTAs: React.FC<FloatingCTAsProps> = ({ locale, messages, hospital }) => {
   return (
     <div className="fixed bottom-4 right-4 z-40 flex flex-col space-y-2 md:hidden">
       <Link

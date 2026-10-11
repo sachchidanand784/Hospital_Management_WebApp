@@ -12,9 +12,10 @@ import { A11yControls } from '../a11y/A11yControls';
 interface NavbarProps {
   locale: 'hi' | 'en';
   messages: any;
+  hospital?: any;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ locale, messages }) => {
+export const Navbar: React.FC<NavbarProps> = ({ locale, messages, hospital }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -36,17 +37,48 @@ export const Navbar: React.FC<NavbarProps> = ({ locale, messages }) => {
     { href: `/${locale}/contact`,      label: messages.nav.contact,     icon: Phone },
   ];
 
+  // Dynamic Hospital Name & Phone from DB
+  const hospitalName = hospital 
+    ? (locale === 'hi' ? (hospital.name_hi || hospital.name_en) : (hospital.name_en || hospital.name_hi)) 
+    : messages.common.hospitalName;
+
+  const primaryPhone = hospital?.phone1 || hospital?.emergencyPhone || '+91 98765 43210';
+
+  // Dynamic Open / Closed Status Calculation based on settings
+  const now = new Date();
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const todayDayName = daysOfWeek[now.getDay()];
+  const isWeeklyHoliday = hospital?.closedDay && hospital.closedDay !== 'None' && hospital.closedDay === todayDayName;
+
+  const currentH = now.getHours();
+  const currentM = now.getMinutes();
+  const currentTimeVal = currentH * 60 + currentM;
+
+  const [openH, openM] = (hospital?.openTime || '09:00').split(':').map(Number);
+  const [closeH, closeM] = (hospital?.closeTime || '18:00').split(':').map(Number);
+  const openTimeVal = openH * 60 + (openM || 0);
+  const closeTimeVal = closeH * 60 + (closeM || 0);
+
+  const isTimingOpen = !isWeeklyHoliday && currentTimeVal >= openTimeVal && currentTimeVal <= closeTimeVal;
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-hospitalBorder shadow-sm">
 
       {/* ─── Row 1: Top Info Bar ─── */}
       <div className="bg-primary-dark text-white px-4 py-1 text-xs flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          <span className="inline-flex items-center font-medium bg-emerald-600 px-2 py-0.5 rounded-full text-[11px]">
-            ● {messages.common.openNow}
+        <div className="flex items-center space-x-3">
+          <span className={`inline-flex items-center font-medium px-2 py-0.5 rounded-full text-[11px] ${
+            isTimingOpen ? 'bg-emerald-600' : 'bg-red-600'
+          }`}>
+            ● {isTimingOpen ? messages.common.openNow : (locale === 'hi' ? `अभी बंद है (${hospital?.openTime || '09:00'} बजे खुलेगा)` : `Closed Now (Opens at ${hospital?.openTime || '09:00 AM'})`)}
           </span>
-          <a href="tel:+919876543210" className="hidden sm:inline-flex items-center hover:underline text-cyan-300">
-            <PhoneCall className="w-3 h-3 mr-1" /> +91 98765 43210
+          {isWeeklyHoliday && (
+            <span className="bg-amber-500/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded hidden sm:inline">
+              {locale === 'hi' ? 'आज साप्ताहिक अवकाश है' : 'Today is Weekly Holiday'}
+            </span>
+          )}
+          <a href={`tel:${primaryPhone.replace(/\s/g, '')}`} className="hidden sm:inline-flex items-center hover:underline text-cyan-300">
+            <PhoneCall className="w-3 h-3 mr-1" /> {primaryPhone}
           </a>
         </div>
         <div className="flex items-center space-x-3">
@@ -70,8 +102,8 @@ export const Navbar: React.FC<NavbarProps> = ({ locale, messages }) => {
             <Eye className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-sm font-extrabold text-primary-dark tracking-tight block leading-tight">
-              {messages.common.hospitalName}
+            <span className="text-sm font-extrabold text-primary-dark tracking-tight block leading-tight max-w-[240px] sm:max-w-sm truncate">
+              {hospitalName}
             </span>
             <span className="text-[10px] text-mutedText block font-medium leading-none">
               {messages.common.tagline}

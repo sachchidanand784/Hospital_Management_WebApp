@@ -23,10 +23,24 @@ import {
 
 import { getPublicServices, getPublicDoctors } from '@/actions/public';
 import { getLiveQueueBoardSummary } from '@/actions/appointment';
+import { getHospitalSettings } from '@/actions/hospital';
 
 export default function HomePage({ params }: { params: { locale: string } }) {
   const locale = params.locale === 'en' ? 'en' : 'hi';
   const messages = locale === 'hi' ? hi : en;
+
+  const [hospital, setHospital] = useState<any>({
+    name_en: SEED_DATA.hospital.name_en,
+    name_hi: SEED_DATA.hospital.name_hi,
+    phone1: SEED_DATA.hospital.phones[0] || '+91 98765 43210',
+    emergencyPhone: SEED_DATA.hospital.emergencyPhone || '+91 98765 43210',
+    openTime: '09:00',
+    closeTime: '18:00',
+    closedDay: 'Sunday',
+    freeCheckupDay: 'Tuesday',
+    freeCheckupEnabled: true,
+    emergency24x7: true,
+  });
 
   const [services, setServices] = useState<any[]>(SEED_DATA.services);
   const [doctors, setDoctors] = useState<any[]>(SEED_DATA.doctors.filter(d => d.verificationStatus === 'VERIFIED'));
@@ -60,9 +74,16 @@ export default function HomePage({ params }: { params: { locale: string } }) {
 
   React.useEffect(() => {
     async function loadData() {
-      const [srvRes, docRes] = await Promise.all([getPublicServices(), getPublicDoctors()]);
+      const [srvRes, docRes, hospRes] = await Promise.all([
+        getPublicServices(),
+        getPublicDoctors(),
+        getHospitalSettings()
+      ]);
       if (srvRes.success) setServices(srvRes.services);
       if (docRes.success) setDoctors(docRes.doctors);
+      if (hospRes && hospRes.success && hospRes.hospital) {
+        setHospital(hospRes.hospital);
+      }
       await fetchQueueSummary();
     }
     loadData();
@@ -72,14 +93,43 @@ export default function HomePage({ params }: { params: { locale: string } }) {
     return () => clearInterval(interval);
   }, []);
 
+  // Compute live open/closed timing
+  const now = new Date();
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const currentDayName = daysOfWeek[now.getDay()];
+  const isClosedToday = hospital.closedDay && hospital.closedDay !== 'None' && hospital.closedDay === currentDayName;
+
+  const [openH, openM] = (hospital.openTime || '09:00').split(':').map(Number);
+  const [closeH, closeM] = (hospital.closeTime || '18:00').split(':').map(Number);
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const openMinutes = (openH || 9) * 60 + (openM || 0);
+  const closeMinutes = (closeH || 18) * 60 + (closeM || 0);
+  const isTimeOpen = currentMinutes >= openMinutes && currentMinutes < closeMinutes;
+  const isOpenNow = !isClosedToday && isTimeOpen;
+
+  const getDayLabel = (d: string) => {
+    const map: Record<string, string> = {
+      Sunday: 'रविवार',
+      Monday: 'सोमवार',
+      Tuesday: 'मंगलवार',
+      Wednesday: 'बुधवार',
+      Thursday: 'गुरुवार',
+      Friday: 'शुक्रवार',
+      Saturday: 'शनिवार',
+      Daily: 'प्रतिदिन',
+      None: 'कोई नहीं'
+    };
+    return locale === 'hi' ? (map[d] || d) : d;
+  };
+
   const [aiChatOpen, setAiChatOpen] = useState(false);
   const [aiInput, setAiInput] = useState('');
   const [aiMessages, setAiMessages] = useState<Array<{ role: 'user' | 'bot'; text: string }>>([
     {
       role: 'bot',
       text: locale === 'hi'
-        ? 'नमस्ते! मैं प्रयाग आई केयर एआई सहायक हूं। अपनी आंखों की समस्या (जैसे धुंधला दिखना, मोतियाबिंद, लाली) बताएं या अस्पताल के बारे में पूछें।'
-        : 'Hello! I am the Prayag Eye Care AI Assistant. Describe your eye symptoms (e.g. blurred vision, cataract, redness) or ask hospital FAQs.'
+        ? `नमस्ते! मैं ${locale === 'hi' ? hospital.name_hi || 'प्रयाग आई केयर' : hospital.name_en || 'Prayag Eye Care'} एआई सहायक हूं। अपनी आंखों की समस्या (जैसे धुंधला दिखना, मोतियाबिंद, लाली) बताएं या अस्पताल के बारे में पूछें।`
+        : `Hello! I am the ${hospital.name_en || 'Prayag Eye Care'} AI Assistant. Describe your eye symptoms (e.g. blurred vision, cataract, redness) or ask hospital FAQs.`
     }
   ]);
 
@@ -98,9 +148,10 @@ export default function HomePage({ params }: { params: { locale: string } }) {
         : 'Based on your description, we recommend a "General Eye Checkup" or "Cataract Consultation". Click below to book an appointment.';
 
       if (lower.includes('pain') || lower.includes('splash') || lower.includes('chemical') || lower.includes('चोट') || lower.includes('दर्द')) {
+        const phone = hospital.emergencyPhone || hospital.phone1 || '+91 98765 43210';
         botReply = locale === 'hi'
-          ? '⚠️ अति आवश्यक: यदि आंख में तेज दर्द या केमिकल की चोट है तो तुरंत हमारे 24 घंटे आपातकालीन नंबर +91 98765 43210 पर संपर्क करें या अस्पताल पहुंचे।'
-          : '⚠️ URGENT: If you are experiencing severe eye pain or chemical injury, please contact our 24x7 emergency helpline +91 98765 43210 or visit immediately.';
+          ? `⚠️ अति आवश्यक: यदि आंख में तेज दर्द या केमिकल की चोट है तो तुरंत हमारे 24 घंटे आपातकालीन नंबर ${phone} पर संपर्क करें या अस्पताल पहुंचे।`
+          : `⚠️ URGENT: If you are experiencing severe eye pain or chemical injury, please contact our 24x7 emergency helpline ${phone} or visit immediately.`;
       }
 
       setAiMessages((prev) => [...prev, { role: 'bot', text: botReply }]);
@@ -116,23 +167,36 @@ export default function HomePage({ params }: { params: { locale: string } }) {
           
           <div className="lg:col-span-7 space-y-6">
             <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-semibold text-cyan-200 border border-white/20">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>{messages.common.openNow} • {messages.common.emergency24x7}</span>
+              <span className={`w-2 h-2 rounded-full ${isOpenNow ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`}></span>
+              <span>
+                {isOpenNow
+                  ? `${locale === 'hi' ? 'अभी खुला है' : 'Open Now'} (${hospital.openTime} - ${hospital.closeTime})`
+                  : isClosedToday
+                    ? `${locale === 'hi' ? 'आज अस्पताल बंद है' : 'Hospital Closed Today'} (${getDayLabel(hospital.closedDay)} अवकाश)`
+                    : `${locale === 'hi' ? 'अभी बंद है' : 'Closed Now'} (${hospital.openTime} बजे खुलेगा)`
+                } {hospital.emergency24x7 ? `• ${locale === 'hi' ? '24x7 आपातकालीन सेवा' : '24x7 Emergency'}` : ''}
+              </span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
-              {messages.home.heroTitle}
+              {locale === 'hi' ? (hospital.name_hi || messages.home.heroTitle) : (hospital.name_en || messages.home.heroTitle)}
             </h1>
 
             <p className="text-base sm:text-lg text-cyan-100 font-normal leading-relaxed">
               {messages.home.heroSubtitle}
             </p>
 
-            {/* Tuesday Free OPD Banner */}
-            <div className="bg-amber-500/20 border border-amber-400/40 p-3.5 rounded-2xl flex items-center space-x-3 text-xs sm:text-sm text-amber-200 font-semibold">
-              <Sparkles className="w-5 h-5 text-amber-300 shrink-0" />
-              <span>{messages.home.todayFreeCheckup}</span>
-            </div>
+            {/* Dynamic Free OPD Banner */}
+            {hospital.freeCheckupEnabled !== false && (
+              <div className="bg-amber-500/20 border border-amber-400/40 p-3.5 rounded-2xl flex items-center space-x-3 text-xs sm:text-sm text-amber-200 font-semibold shadow-inner">
+                <Sparkles className="w-5 h-5 text-amber-300 shrink-0 animate-bounce" />
+                <span>
+                  {locale === 'hi'
+                    ? `विशेष सूचना: हर ${getDayLabel(hospital.freeCheckupDay || 'Tuesday')} को अस्पताल में निःशुल्क नेत्र जांच (Free OPD) उपलब्ध है! (समय: सुबह ${hospital.openTime} - शाम ${hospital.closeTime})`
+                    : `Special Notice: Free OPD Eye Checkup available every ${hospital.freeCheckupDay || 'Tuesday'}! (Timings: ${hospital.openTime} - ${hospital.closeTime})`}
+                </span>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-4 pt-2">
