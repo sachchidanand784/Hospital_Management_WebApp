@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 
 import { getPublicServices, getPublicDoctors } from '@/actions/public';
+import { getLiveQueueBoardSummary } from '@/actions/appointment';
 
 export default function HomePage({ params }: { params: { locale: string } }) {
   const locale = params.locale === 'en' ? 'en' : 'hi';
@@ -29,14 +30,46 @@ export default function HomePage({ params }: { params: { locale: string } }) {
 
   const [services, setServices] = useState<any[]>(SEED_DATA.services);
   const [doctors, setDoctors] = useState<any[]>(SEED_DATA.doctors.filter(d => d.verificationStatus === 'VERIFIED'));
+  const [queueBoard, setQueueBoard] = useState<any>({
+    queueActive: true,
+    totalToday: 4,
+    currentServing: {
+      token: 'A-014',
+      doctor: 'Dr. Suresh Kumar Sharma',
+      status: 'IN_CONSULTATION',
+      patientName: 'Ram Kumar',
+    },
+    nextToken: {
+      token: 'A-015',
+      status: 'Waiting in Lounge',
+      patientName: 'Sita Devi',
+    },
+    waitStats: {
+      patientsAhead: 1,
+      estMinutes: 12,
+      timeWindow: '15-20 min',
+    }
+  });
+
+  const fetchQueueSummary = async () => {
+    const qRes = await getLiveQueueBoardSummary();
+    if (qRes && qRes.success) {
+      setQueueBoard(qRes);
+    }
+  };
 
   React.useEffect(() => {
     async function loadData() {
       const [srvRes, docRes] = await Promise.all([getPublicServices(), getPublicDoctors()]);
       if (srvRes.success) setServices(srvRes.services);
       if (docRes.success) setDoctors(docRes.doctors);
+      await fetchQueueSummary();
     }
     loadData();
+
+    // Auto sync live queue board every 5 seconds
+    const interval = setInterval(fetchQueueSummary, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const [aiChatOpen, setAiChatOpen] = useState(false);
@@ -128,22 +161,50 @@ export default function HomePage({ params }: { params: { locale: string } }) {
                 <span className="text-xs font-bold text-primary uppercase tracking-wider flex items-center">
                   <Clock className="w-4 h-4 mr-1 text-accent" /> Live Queue Board (OPD 1)
                 </span>
-                <span className="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2 py-0.5 rounded-full">
-                  Queue Active
+                <span className="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center animate-pulse">
+                  ● {queueBoard.queueActive ? (locale === 'hi' ? 'लाइव कतार सक्रिय' : 'Queue Active') : (locale === 'hi' ? 'कतार बंद' : 'Queue Closed')}
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-center">
                 <div className="bg-hospitalBg p-3 rounded-xl border border-gray-200">
                   <span className="text-xs text-mutedText font-semibold">{messages.token.currentlyServing}</span>
-                  <div className="text-3xl font-extrabold text-primary font-mono mt-1">A-014</div>
-                  <span className="text-[11px] text-gray-500 block">Dr. S. K. Sharma</span>
+                  <div className="text-3xl font-extrabold text-primary font-mono mt-1">
+                    {queueBoard.currentServing?.token || 'A-001'}
+                  </div>
+                  <span className="text-[11px] text-gray-600 font-medium block truncate mt-0.5">
+                    {queueBoard.currentServing?.doctor || 'OPD Doctor'}
+                  </span>
                 </div>
                 <div className="bg-hospitalBg p-3 rounded-xl border border-gray-200">
-                  <span className="text-xs text-mutedText font-semibold">Next Token</span>
-                  <div className="text-3xl font-extrabold text-amber-600 font-mono mt-1">A-015</div>
-                  <span className="text-[11px] text-gray-500 block">Waiting in Lounge</span>
+                  <span className="text-xs text-mutedText font-semibold">
+                    {locale === 'hi' ? 'अगला टोकन' : 'Next Token'}
+                  </span>
+                  <div className="text-3xl font-extrabold text-amber-600 font-mono mt-1">
+                    {queueBoard.nextToken?.token || 'A-002'}
+                  </div>
+                  <span className="text-[11px] text-gray-600 font-medium block truncate mt-0.5">
+                    {queueBoard.nextToken?.status || (locale === 'hi' ? 'प्रतीक्षालय में' : 'Waiting in Lounge')}
+                  </span>
                 </div>
+              </div>
+
+              {/* Dynamic Estimated Wait Time notice */}
+              <div className="bg-blue-50 border border-blue-200 p-2.5 rounded-xl text-center space-y-0.5">
+                <div className="text-xs font-bold text-blue-900 flex justify-center items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-primary" />
+                  <span>
+                    {locale === 'hi' ? 'अगले मरीज का अनुमानित समय (ETA)' : 'Estimated Wait Window for Next Patient'}:
+                  </span>
+                  <span className="text-primary font-extrabold font-mono">
+                    {queueBoard.waitStats?.timeWindow} (~{queueBoard.waitStats?.estMinutes} min)
+                  </span>
+                </div>
+                <p className="text-[10px] text-blue-700">
+                  {locale === 'hi' 
+                    ? `कतार में कुल ${queueBoard.waitStats?.patientsAhead || 1} मरीज आगे हैं • प्रति मरीज ~12 मिनट परामर्श` 
+                    : `${queueBoard.waitStats?.patientsAhead || 1} patients in queue • ~12 mins average consult time`}
+                </p>
               </div>
 
               <Link
