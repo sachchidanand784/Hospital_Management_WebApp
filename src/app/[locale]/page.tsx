@@ -266,6 +266,88 @@ export default function HomePage({ params }: { params: { locale: string } }) {
     }
   ];
 
+  // Featured Common Eye Diseases & Symptoms with Real Photos
+  const featuredDiseases = [
+    {
+      id: 'prob-6',
+      name_en: 'Cloudy or Hazed Vision (Cataract)',
+      name_hi: 'धुंधला या जाला सा दिखना (मोतियाबिंद)',
+      image: '/images/diseases/cloudy-cataract.jpg',
+      category_en: 'Cataract / Motiyabind',
+      category_hi: 'मोतियाबिंद (सफेद मोतिया)',
+      badgeColor: 'bg-purple-600 text-white',
+      serviceId: 'srv-cataract',
+      serviceName_en: 'Cataract Evaluation & Phaco Surgery',
+      serviceName_hi: 'मोतियाबिंद जांच एवं फेको ऑपरेशन',
+      redFlag: false,
+    },
+    {
+      id: 'prob-2',
+      name_en: 'Eye Redness & Irritation',
+      name_hi: 'आंखों में लाली एवं जलन',
+      image: '/images/diseases/eye-redness.jpg',
+      category_en: 'Redness & Allergy',
+      category_hi: 'लाली एवं एलर्जी',
+      badgeColor: 'bg-rose-600 text-white',
+      serviceId: 'srv-checkup',
+      serviceName_en: 'General Eye Examination & Consultation',
+      serviceName_hi: 'सामान्य नेत्र जांच एवं परामर्श',
+      redFlag: false,
+    },
+    {
+      id: 'prob-9',
+      name_en: 'Black Spots & Floaters in Vision',
+      name_hi: 'आंखों के आगे काले धब्बे (फ्लोटर्स)',
+      image: '/images/diseases/eye-floaters.jpg',
+      category_en: 'Vitreo-Retina',
+      category_hi: 'विट्रियो-रेटिना (पर्दा)',
+      badgeColor: 'bg-teal-600 text-white',
+      serviceId: 'srv-retina',
+      serviceName_en: 'Vitreo Retinal Laser & Surgery',
+      serviceName_hi: 'विट्रियो रेटिना लेजर व शल्य चिकित्सा',
+      redFlag: false,
+    },
+    {
+      id: 'prob-10',
+      name_en: 'Light Flashes / Curtain Effect',
+      name_hi: 'रोशनी की लकीरें या पर्दा गिरना',
+      image: '/images/diseases/flashes-curtain.jpg',
+      category_en: 'Retinal Detachment Alert',
+      category_hi: 'पर्दा गिरना / रेड फ्लैग',
+      badgeColor: 'bg-red-600 text-white',
+      serviceId: 'srv-retina',
+      serviceName_en: 'Vitreo Retinal Laser & Surgery',
+      serviceName_hi: 'विट्रियो रेटिना लेजर व शल्य चिकित्सा',
+      redFlag: true,
+    },
+    {
+      id: 'prob-4',
+      name_en: 'Dry Eyes, Burning & Fatigue',
+      name_hi: 'सूखी आंखें, जलन एवं थकावट',
+      image: '/images/diseases/dry-eyes.jpg',
+      category_en: 'Dry Eye Syndrome',
+      category_hi: 'ड्राय आई (सूखापन)',
+      badgeColor: 'bg-amber-600 text-white',
+      serviceId: 'srv-checkup',
+      serviceName_en: 'General Eye Examination & Consultation',
+      serviceName_hi: 'सामान्य नेत्र जांच एवं परामर्श',
+      redFlag: false,
+    },
+    {
+      id: 'prob-16',
+      name_en: 'Glasses Power Check & Refraction',
+      name_hi: 'चश्मा नंबर जांच व दृष्टि सुधार',
+      image: '/images/diseases/glass-power-check.jpg',
+      category_en: 'Optometry & Glasses',
+      category_hi: 'चश्मा घर (ऑप्टिकल)',
+      badgeColor: 'bg-emerald-600 text-white',
+      serviceId: 'srv-optometry',
+      serviceName_en: 'Optometry: Eye Number Check & Glasses Fitting',
+      serviceName_hi: 'ऑप्टोमेट्री: चश्मा नंबर जांच एवं फिटिंग',
+      redFlag: false,
+    },
+  ];
+
   return (
     <div className="space-y-12 pb-16">
       {/* 1. HERO BANNER */}
@@ -664,7 +746,114 @@ export default function HomePage({ params }: { params: { locale: string } }) {
         </div>
       </section>
 
-      {/* 5. HOW DIGITAL TOKEN BOOKING WORKS */}
+      {/* 5. COMMON EYE DISEASES & SYMPTOM GUIDE (WITH REAL CLINICAL PHOTOS) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
+          <div>
+            <div className="inline-flex items-center space-x-1.5 bg-rose-500/10 text-rose-600 px-3 py-1 rounded-full text-xs font-bold mb-2">
+              <Activity className="w-3.5 h-3.5" />
+              <span>{locale === 'hi' ? 'आंखों की बीमारियां एवं लक्षण गाइड' : 'Eye Diseases & Symptoms Guide'}</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-primary-dark tracking-tight">
+              {locale === 'hi' ? 'क्या आपकी आंखों में कोई समस्या या लक्षण है?' : 'Identify Your Eye Symptoms & Conditions'}
+            </h2>
+            <p className="text-xs sm:text-sm text-mutedText mt-1">
+              {locale === 'hi'
+                ? 'सफेद मोतियाबिंद, काला मोतिया, रेटिना पर्दा, लाली, या चश्मा नंबर — अपने लक्षण अनुसार सही विशेषज्ञ चुनें।'
+                : 'Explore common ophthalmic symptoms with authentic clinical photos and get the right specialist consultation.'}
+            </p>
+          </div>
+
+          <Link
+            href={`/${locale}/eye-problems`}
+            className="bg-primary hover:bg-primary-dark text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center shadow-sm"
+          >
+            {locale === 'hi' ? 'सभी 19 बीमारियां व लक्षण देखें' : 'Explore All 19 Eye Conditions'} <ArrowRight className="w-4 h-4 ml-1.5" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {featuredDiseases.map((dis) => (
+            <div
+              key={dis.id}
+              className={`group surface-card rounded-2xl shadow-card hover:shadow-2xl transition-all duration-300 border flex flex-col justify-between overflow-hidden hover:-translate-y-1 ${
+                dis.redFlag
+                  ? 'border-red-400 bg-gradient-to-b from-red-50/50 via-white to-white'
+                  : 'border-hospitalBorder hover:border-primary/50'
+              }`}
+            >
+              {/* Actual Real Clinical Condition Photo */}
+              <div className="relative h-44 w-full overflow-hidden bg-slate-900">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={dis.image}
+                  alt={locale === 'hi' ? dis.name_hi : dis.name_en}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 opacity-95 group-hover:opacity-100"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+
+                {/* Top Badges */}
+                <div className="absolute top-3 left-3 right-3 flex justify-between items-start z-10 pointer-events-none">
+                  <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-lg backdrop-blur-md shadow-md ${dis.badgeColor}`}>
+                    {locale === 'hi' ? dis.category_hi : dis.category_en}
+                  </span>
+
+                  {dis.redFlag && (
+                    <span className="bg-emergency text-white text-[10px] font-extrabold px-2.5 py-1 rounded-lg shadow-lg flex items-center animate-pulse">
+                      <AlertTriangle className="w-3 h-3 mr-1" />
+                      {locale === 'hi' ? 'रेड फ्लैग' : 'Red Flag'}
+                    </span>
+                  )}
+                </div>
+
+                {/* Bottom Overlay Title on Image */}
+                <div className="absolute bottom-3 left-3 right-3 z-10">
+                  <h3 className="font-extrabold text-white text-base leading-snug drop-shadow-md">
+                    {locale === 'hi' ? dis.name_hi : dis.name_en}
+                  </h3>
+                </div>
+              </div>
+
+              {/* Card Body */}
+              <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                <div className="bg-hospitalBg p-2.5 rounded-xl border border-gray-100 space-y-0.5">
+                  <span className="text-[10px] uppercase font-bold text-mutedText tracking-wider block">
+                    {locale === 'hi' ? 'सुझाई गई चिकित्सा सेवा' : 'Recommended Service'}
+                  </span>
+                  <span className="text-xs font-bold text-primary-dark block truncate">
+                    {locale === 'hi' ? dis.serviceName_hi : dis.serviceName_en}
+                  </span>
+                </div>
+
+                {/* Action Button */}
+                <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-gray-500">
+                    {dis.redFlag ? (locale === 'hi' ? 'आपातकाल' : 'Urgent') : (locale === 'hi' ? 'ओपीडी परामर्श' : 'OPD Consult')}
+                  </span>
+                  {dis.redFlag ? (
+                    <Link
+                      href={`/${locale}/emergency`}
+                      className="bg-emergency hover:bg-red-700 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-emergency flex items-center transition"
+                    >
+                      {locale === 'hi' ? 'इमरजेंसी हेल्प' : 'Emergency Help'} <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </Link>
+                  ) : (
+                    <Link
+                      href={`/${locale}/appointment?service=${dis.serviceId}`}
+                      className="bg-primary hover:bg-primary-dark text-white font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-sm flex items-center transition"
+                    >
+                      {locale === 'hi' ? 'डॉक्टर बुक करें' : 'Book Doctor'} <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 6. HOW DIGITAL TOKEN BOOKING WORKS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <h2 className="text-2xl sm:text-3xl font-bold text-primary-dark">{messages.home.howItWorksTitle}</h2>
