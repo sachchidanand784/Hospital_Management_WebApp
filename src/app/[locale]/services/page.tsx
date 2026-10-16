@@ -15,6 +15,47 @@ export default function ServicesPage({ params }: { params: { locale: string } })
 
   const [services, setServices] = React.useState<any[]>(SEED_DATA.services);
 
+  const serviceImageMap: Record<string, { image: string; tag_en: string; tag_hi: string }> = {
+    'srv-checkup': {
+      image: '/images/services/general-exam.jpg',
+      tag_en: 'Comprehensive OPD Checkup',
+      tag_hi: 'सम्पूर्ण ओपीडी नेत्र जांच',
+    },
+    'srv-cataract': {
+      image: '/images/services/cataract-phaco.jpg',
+      tag_en: 'Micro-Incision Phaco Surgery',
+      tag_hi: 'माइक्रो-इंसीजन फेको ऑपरेशन',
+    },
+    'srv-retina': {
+      image: '/images/services/retina-laser.jpg',
+      tag_en: 'Vitreo-Retina Laser & Care',
+      tag_hi: 'विट्रियो-रेटिना लेजर व पर्दा जांच',
+    },
+    'srv-emergency': {
+      image: '/images/services/emergency-ocular.jpg',
+      tag_en: '24x7 Ocular Trauma & Emergency',
+      tag_hi: '24 घंटे आंख की चोट व इमरजेंसी',
+    },
+    'srv-optometry': {
+      image: '/images/services/optometry-glasses.jpg',
+      tag_en: 'Computerized Refraction & Frames',
+      tag_hi: 'कंप्यूटरीकृत चश्मा जांच व फिटिंग',
+    },
+    'srv-glaucoma': {
+      image: '/images/services/glaucoma-tonometry.jpg',
+      tag_en: 'Glaucoma & Eye Pressure',
+      tag_hi: 'काला मोतिया व आईओपी जांच',
+    },
+  };
+
+  const getServiceVisuals = (srvId: string) => {
+    return serviceImageMap[srvId] || {
+      image: '/images/services/general-exam.jpg',
+      tag_en: 'Specialized Eye Care',
+      tag_hi: 'विशिष्ट नेत्र चिकित्सा',
+    };
+  };
+
   React.useEffect(() => {
     async function loadData() {
       const res = await getPublicServices();
@@ -37,14 +78,27 @@ export default function ServicesPage({ params }: { params: { locale: string } })
 
       {/* Services Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {services.map((srv) => (
-          <div key={srv.id} className="surface-card p-6 rounded-2xl shadow-card space-y-4 border border-hospitalBorder flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center font-bold">
-                <Eye className="w-6 h-6" />
-              </div>
-              <h2 className="text-lg font-bold text-primary-dark">{locale === 'hi' ? srv.name_hi : srv.name_en}</h2>
-              <p className="text-xs text-mutedText leading-relaxed">{locale === 'hi' ? srv.desc_hi : srv.desc_en}</p>
+        {services.map((srv) => {
+          const visuals = getServiceVisuals(srv.id);
+          return (
+            <div key={srv.id} className="surface-card p-6 rounded-2xl shadow-card hover:shadow-xl transition-all duration-300 space-y-4 border border-hospitalBorder flex flex-col justify-between group hover:-translate-y-1">
+              <div className="space-y-4">
+                {/* Real Procedure Photo (2x passport size) */}
+                <div className="relative w-full h-52 overflow-hidden rounded-xl bg-slate-900 shadow-sm">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={visuals.image}
+                    alt={locale === 'hi' ? srv.name_hi : srv.name_en}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
+                  <span className="absolute top-3 left-3 bg-primary-dark/85 backdrop-blur-md text-cyan-200 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-white/20">
+                    {locale === 'hi' ? visuals.tag_hi : visuals.tag_en}
+                  </span>
+                </div>
+
+                <h2 className="text-xl font-extrabold text-primary-dark group-hover:text-primary transition">{locale === 'hi' ? srv.name_hi : srv.name_en}</h2>
+                <p className="text-xs text-mutedText leading-relaxed">{locale === 'hi' ? srv.desc_hi : srv.desc_en}</p>
 
               <div className="pt-2">
                 <span className="text-xs font-bold text-primary-dark block mb-1">
@@ -73,8 +127,9 @@ export default function ServicesPage({ params }: { params: { locale: string } })
               </Link>
             </div>
           </div>
-        ))}
-      </div>
+        );
+      })}
     </div>
-  );
+  </div>
+);
 }

@@ -23,7 +23,11 @@ import {
   MapPin,
   Star,
   Activity,
-  Image as ImageIcon
+  Image as ImageIcon,
+  ChevronLeft,
+  Play,
+  Pause,
+  MoveHorizontal
 } from 'lucide-react';
 
 import { getPublicServices, getPublicDoctors } from '@/actions/public';
@@ -72,6 +76,57 @@ export default function HomePage({ params }: { params: { locale: string } }) {
   });
 
   const [galleryFilter, setGalleryFilter] = useState<'all' | 'ot' | 'labs' | 'campus'>('all');
+  const [isMarqueePaused, setIsMarqueePaused] = useState<boolean>(false);
+  const [marqueeDirection, setMarqueeDirection] = useState<'ltr' | 'rtl'>('ltr');
+  const serviceScrollRef = React.useRef<HTMLDivElement>(null);
+
+  const scrollServices = (direction: 'left' | 'right') => {
+    if (serviceScrollRef.current) {
+      const scrollAmount = direction === 'left' ? -360 : 360;
+      serviceScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
+  const serviceImageMap: Record<string, { image: string; tag_en: string; tag_hi: string }> = {
+    'srv-checkup': {
+      image: '/images/services/general-exam.jpg',
+      tag_en: 'Comprehensive OPD Checkup',
+      tag_hi: 'सम्पूर्ण ओपीडी नेत्र जांच',
+    },
+    'srv-cataract': {
+      image: '/images/services/cataract-phaco.jpg',
+      tag_en: 'Micro-Incision Phaco Surgery',
+      tag_hi: 'माइक्रो-इंसीजन फेको ऑपरेशन',
+    },
+    'srv-retina': {
+      image: '/images/services/retina-laser.jpg',
+      tag_en: 'Vitreo-Retina Laser & Care',
+      tag_hi: 'विट्रियो-रेटिना लेजर व पर्दा जांच',
+    },
+    'srv-emergency': {
+      image: '/images/services/emergency-ocular.jpg',
+      tag_en: '24x7 Ocular Trauma & Emergency',
+      tag_hi: '24 घंटे आंख की चोट व इमरजेंसी',
+    },
+    'srv-optometry': {
+      image: '/images/services/optometry-glasses.jpg',
+      tag_en: 'Computerized Refraction & Frames',
+      tag_hi: 'कंप्यूटरीकृत चश्मा जांच व फिटिंग',
+    },
+    'srv-glaucoma': {
+      image: '/images/services/glaucoma-tonometry.jpg',
+      tag_en: 'Glaucoma & Eye Pressure',
+      tag_hi: 'काला मोतिया व आईओपी जांच',
+    },
+  };
+
+  const getServiceVisuals = (srvId: string) => {
+    return serviceImageMap[srvId] || {
+      image: '/images/services/general-exam.jpg',
+      tag_en: 'Specialized Eye Care',
+      tag_hi: 'विशिष्ट नेत्र चिकित्सा',
+    };
+  };
 
   const fetchQueueSummary = async () => {
     const qRes = await getLiveQueueBoardSummary();
@@ -286,16 +341,19 @@ export default function HomePage({ params }: { params: { locale: string } }) {
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-center">
-                <div className="bg-hospitalBg p-3 rounded-xl border border-gray-200">
+                <div className="bg-hospitalBg p-3 rounded-xl border border-gray-200 hover:-translate-y-1 transition-transform">
                   <span className="text-xs text-mutedText font-semibold">{messages.token.currentlyServing}</span>
-                  <div className="text-3xl font-extrabold text-primary font-mono mt-1">
-                    {queueBoard.currentServing?.token || 'A-014'}
+                  <div className="relative inline-flex items-center justify-center w-full">
+                    <span className="absolute w-12 h-12 rounded-full bg-primary/20 animate-ping"></span>
+                    <div className="text-3xl font-extrabold text-primary font-mono mt-1 relative z-10">
+                      {queueBoard.currentServing?.token || 'A-014'}
+                    </div>
                   </div>
                   <span className="text-[11px] text-gray-600 font-medium block truncate mt-0.5">
                     {queueBoard.currentServing?.doctor || 'Dr. Madhav Mukund'}
                   </span>
                 </div>
-                <div className="bg-hospitalBg p-3 rounded-xl border border-gray-200">
+                <div className="bg-hospitalBg p-3 rounded-xl border border-gray-200 hover:-translate-y-1 transition-transform">
                   <span className="text-xs text-mutedText font-semibold">
                     {locale === 'hi' ? 'अगला टोकन' : 'Next Token'}
                   </span>
@@ -339,10 +397,10 @@ export default function HomePage({ params }: { params: { locale: string } }) {
         </div>
       </section>
 
-      {/* 2. TRUST STATS & HIGHLIGHTS BAR */}
+      {/* 2. TRUST STATS & HIGHLIGHTS BAR WITH FLOATING MICRO-ANIMATIONS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 relative z-20">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="surface-card p-4 rounded-xl shadow-card border border-hospitalBorder flex items-center space-x-3">
+          <div className="surface-card p-4 rounded-xl shadow-card hover:shadow-xl border border-hospitalBorder flex items-center space-x-3 animate-float-slow hover:-translate-y-1.5 transition-all duration-300">
             <div className="w-10 h-10 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
               <Award className="w-5 h-5" />
             </div>
@@ -352,7 +410,7 @@ export default function HomePage({ params }: { params: { locale: string } }) {
             </div>
           </div>
 
-          <div className="surface-card p-4 rounded-xl shadow-card border border-hospitalBorder flex items-center space-x-3">
+          <div className="surface-card p-4 rounded-xl shadow-card hover:shadow-xl border border-hospitalBorder flex items-center space-x-3 animate-float-delayed hover:-translate-y-1.5 transition-all duration-300">
             <div className="w-10 h-10 bg-accent/10 text-accent rounded-lg flex items-center justify-center shrink-0">
               <Eye className="w-5 h-5" />
             </div>
@@ -362,7 +420,7 @@ export default function HomePage({ params }: { params: { locale: string } }) {
             </div>
           </div>
 
-          <div className="surface-card p-4 rounded-xl shadow-card border border-hospitalBorder flex items-center space-x-3">
+          <div className="surface-card p-4 rounded-xl shadow-card hover:shadow-xl border border-hospitalBorder flex items-center space-x-3 animate-float-slow hover:-translate-y-1.5 transition-all duration-300">
             <div className="w-10 h-10 bg-emerald-500/10 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
               <ShieldCheck className="w-5 h-5" />
             </div>
@@ -372,7 +430,7 @@ export default function HomePage({ params }: { params: { locale: string } }) {
             </div>
           </div>
 
-          <div className="surface-card p-4 rounded-xl shadow-card border border-hospitalBorder flex items-center space-x-3">
+          <div className="surface-card p-4 rounded-xl shadow-card hover:shadow-xl border border-hospitalBorder flex items-center space-x-3 animate-float-delayed hover:-translate-y-1.5 transition-all duration-300">
             <div className="w-10 h-10 bg-amber-500/10 text-amber-600 rounded-lg flex items-center justify-center shrink-0">
               <Clock className="w-5 h-5" />
             </div>
@@ -461,62 +519,148 @@ export default function HomePage({ params }: { params: { locale: string } }) {
         </div>
       </section>
 
-      {/* 4. HOSPITAL SERVICES GRID */}
+      {/* 4. HOSPITAL EYE SERVICES (2X PASSPORT PHOTOS & AUTO-FLOATING TRACK) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-primary-dark">{messages.services.title}</h2>
+            <div className="inline-flex items-center space-x-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold mb-2">
+              <Sparkles className="w-3.5 h-3.5 text-accent animate-spin" style={{ animationDuration: '6s' }} />
+              <span>{locale === 'hi' ? 'विशेषज्ञ नेत्र चिकित्सा सेवाएं' : 'Advanced Eye Care Services'}</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-primary-dark tracking-tight">
+              {messages.services.title}
+            </h2>
             <p className="text-xs sm:text-sm text-mutedText mt-1">
               {locale === 'hi'
                 ? 'मोतियाबिंद, रेटिना, ग्लूकोमा एवं चश्मा हटाने की आधुनिकतम सुविधाएं'
                 : 'Comprehensive specialized ophthalmic care with imported precision equipment.'}
             </p>
           </div>
-          <Link href={`/${locale}/services`} className="text-xs font-bold text-primary hover:underline flex items-center mt-2 sm:mt-0">
-            {messages.common.viewDetails} <ChevronRight className="w-4 h-4" />
-          </Link>
+
+          {/* Interactive Floating Controls & Actions */}
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Auto-Floating Status Badge */}
+            <span className="hidden sm:inline-flex items-center text-[11px] font-bold text-accent bg-accent/10 px-3 py-1.5 rounded-xl border border-accent/20">
+              <span className={`w-2 h-2 rounded-full mr-1.5 ${isMarqueePaused ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}`}></span>
+              {isMarqueePaused 
+                ? (locale === 'hi' ? 'फ्लोटिंग थमी हुई है' : 'Floating Paused') 
+                : (locale === 'hi' ? 'ऑटो-फ्लोटिंग (बाएं से दाएं)' : 'Auto-Floating (Left to Right)')}
+            </span>
+
+            {/* Pause / Play Toggle */}
+            <button
+              onClick={() => setIsMarqueePaused(!isMarqueePaused)}
+              title={isMarqueePaused ? (locale === 'hi' ? 'चालू करें' : 'Play motion') : (locale === 'hi' ? 'रोकें' : 'Pause motion')}
+              className="p-2 bg-gray-100 hover:bg-gray-200 text-primary-dark rounded-xl transition border border-gray-200 text-xs font-bold flex items-center"
+              aria-label="Toggle auto-floating"
+            >
+              {isMarqueePaused ? <Play className="w-4 h-4 fill-current text-emerald-600" /> : <Pause className="w-4 h-4 text-primary" />}
+            </button>
+
+            {/* Direction Toggle (Left to Right / Right to Left) */}
+            <button
+              onClick={() => setMarqueeDirection(marqueeDirection === 'ltr' ? 'rtl' : 'ltr')}
+              title={locale === 'hi' ? 'दिशा बदलें' : 'Change direction'}
+              className="p-2 bg-gray-100 hover:bg-gray-200 text-primary-dark rounded-xl transition border border-gray-200 text-xs font-bold flex items-center"
+              aria-label="Toggle direction"
+            >
+              <MoveHorizontal className="w-4 h-4 text-primary" />
+            </button>
+
+            {/* Manual Scroll Buttons */}
+            <button
+              onClick={() => scrollServices('left')}
+              className="p-2 bg-gray-100 hover:bg-gray-200 text-primary-dark rounded-xl transition border border-gray-200"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => scrollServices('right')}
+              className="p-2 bg-gray-100 hover:bg-gray-200 text-primary-dark rounded-xl transition border border-gray-200"
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+
+            <Link href={`/${locale}/services`} className="text-xs font-bold text-primary hover:underline flex items-center ml-1">
+              {messages.common.viewDetails} <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {services.map((srv, idx) => {
-            // Match with website service icons if available
-            const iconMap: Record<string, string> = {
-              'srv-cataract': '/images/services/cataract.png',
-              'srv-retina': '/images/services/retina.png',
-              'srv-glaucoma': '/images/services/glaucoma.png',
-              'srv-oculoplasty': '/images/services/oculoplasty.png',
-            };
-            const customIcon = iconMap[srv.id];
+        {/* Auto-Floating Continuous Carousel Track */}
+        <div
+          ref={serviceScrollRef}
+          className="relative overflow-x-auto no-scrollbar py-3 -mx-4 px-4 select-none"
+        >
+          <div
+            className={`marquee-track-${marqueeDirection} gap-6 ${isMarqueePaused ? 'paused' : ''}`}
+            onMouseEnter={() => setIsMarqueePaused(true)}
+            onMouseLeave={() => setIsMarqueePaused(false)}
+          >
+            {[...services, ...services].map((srv, idx) => {
+              const visuals = getServiceVisuals(srv.id);
 
-            return (
-              <div key={srv.id} className="surface-card p-6 rounded-2xl shadow-card hover:shadow-xl transition space-y-3 flex flex-col justify-between border border-hospitalBorder">
-                <div className="space-y-3">
-                  <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center p-2">
-                    {customIcon ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={customIcon} alt={srv.name_en} className="w-8 h-8 object-contain" />
-                    ) : (
-                      <Eye className="w-6 h-6" />
-                    )}
+              return (
+                <div
+                  key={`${srv.id}-${idx}`}
+                  className="w-[310px] sm:w-[350px] shrink-0 surface-card rounded-2xl shadow-card hover:shadow-2xl transition-all duration-300 flex flex-col justify-between border border-hospitalBorder overflow-hidden group hover:-translate-y-2 bg-white"
+                >
+                  {/* Photo Container: Twice passport size (h-48 = 192px), real eye procedure photo */}
+                  <div className="relative w-full h-48 overflow-hidden bg-slate-900">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={visuals.image}
+                      alt={locale === 'hi' ? srv.name_hi : srv.name_en}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
+                    
+                    {/* Procedure Badge */}
+                    <span className="absolute top-3 left-3 bg-primary-dark/85 backdrop-blur-md text-cyan-200 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-white/20 shadow-sm">
+                      {locale === 'hi' ? visuals.tag_hi : visuals.tag_en}
+                    </span>
+
+                    {/* Fee Status Badge */}
+                    <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center text-xs">
+                      <span className="font-bold text-white bg-emerald-600/90 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-[11px] shadow">
+                        {srv.defaultFee > 0 ? `Fee ₹${srv.defaultFee}` : 'Free OPD'}
+                      </span>
+                      <span className="text-[10px] text-gray-200 bg-black/50 px-2 py-0.5 rounded backdrop-blur-sm">
+                        {messages.common.feeNotice}
+                      </span>
+                    </div>
                   </div>
-                  <h3 className="font-bold text-base text-primary-dark">{locale === 'hi' ? srv.name_hi : srv.name_en}</h3>
-                  <p className="text-xs text-mutedText leading-relaxed">{locale === 'hi' ? srv.desc_hi : srv.desc_en}</p>
-                </div>
 
-                <div className="pt-3 border-t border-gray-100 flex justify-between items-center text-xs">
-                  <span className="font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md">
-                    {srv.defaultFee > 0 ? `Fee ₹${srv.defaultFee}` : 'Free OPD'} ({messages.common.feeNotice})
-                  </span>
-                  <Link
-                    href={`/${locale}/appointment?service=${srv.id}`}
-                    className="font-bold text-primary hover:text-primary-dark flex items-center"
-                  >
-                    {messages.common.bookAppointment} <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                  </Link>
+                  {/* Card Body: Title, Untouched Descriptions, and Action Link */}
+                  <div className="p-5 space-y-3 flex flex-col justify-between flex-1">
+                    <div className="space-y-2">
+                      <h3 className="font-extrabold text-base text-primary-dark group-hover:text-primary transition leading-snug line-clamp-2">
+                        {locale === 'hi' ? srv.name_hi : srv.name_en}
+                      </h3>
+                      <p className="text-xs text-mutedText leading-relaxed line-clamp-3">
+                        {locale === 'hi' ? srv.desc_hi : srv.desc_en}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-accent flex items-center">
+                        <Sparkles className="w-3.5 h-3.5 mr-1 text-accent" />
+                        {locale === 'hi' ? 'वरिष्ठ विशेषज्ञ' : 'Senior Specialist'}
+                      </span>
+                      <Link
+                        href={`/${locale}/appointment?service=${srv.id}`}
+                        className="bg-primary hover:bg-primary-dark text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center shadow-sm group-hover:shadow"
+                      >
+                        {messages.common.bookAppointment} <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                      </Link>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </section>
 
@@ -532,26 +676,26 @@ export default function HomePage({ params }: { params: { locale: string } }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="surface-card p-5 rounded-2xl shadow-card text-center space-y-2 relative border border-hospitalBorder">
-            <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mx-auto font-bold text-lg">1</div>
+          <div className="surface-card p-5 rounded-2xl shadow-card hover:shadow-xl text-center space-y-2 relative border border-hospitalBorder hover:-translate-y-1.5 transition-all duration-300 group">
+            <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mx-auto font-bold text-lg group-hover:scale-110 transition-transform">1</div>
             <h3 className="font-bold text-sm text-primary-dark">{messages.home.step1Title}</h3>
             <p className="text-xs text-mutedText leading-relaxed">{messages.home.step1Desc}</p>
           </div>
 
-          <div className="surface-card p-5 rounded-2xl shadow-card text-center space-y-2 relative border border-hospitalBorder">
-            <div className="w-12 h-12 bg-accent/10 text-accent rounded-xl flex items-center justify-center mx-auto font-bold text-lg">2</div>
+          <div className="surface-card p-5 rounded-2xl shadow-card hover:shadow-xl text-center space-y-2 relative border border-hospitalBorder hover:-translate-y-1.5 transition-all duration-300 group">
+            <div className="w-12 h-12 bg-accent/10 text-accent rounded-xl flex items-center justify-center mx-auto font-bold text-lg group-hover:scale-110 transition-transform">2</div>
             <h3 className="font-bold text-sm text-primary-dark">{messages.home.step2Title}</h3>
             <p className="text-xs text-mutedText leading-relaxed">{messages.home.step2Desc}</p>
           </div>
 
-          <div className="surface-card p-5 rounded-2xl shadow-card text-center space-y-2 relative border border-hospitalBorder">
-            <div className="w-12 h-12 bg-amber-500/10 text-amber-600 rounded-xl flex items-center justify-center mx-auto font-bold text-lg">3</div>
+          <div className="surface-card p-5 rounded-2xl shadow-card hover:shadow-xl text-center space-y-2 relative border border-hospitalBorder hover:-translate-y-1.5 transition-all duration-300 group">
+            <div className="w-12 h-12 bg-amber-500/10 text-amber-600 rounded-xl flex items-center justify-center mx-auto font-bold text-lg group-hover:scale-110 transition-transform">3</div>
             <h3 className="font-bold text-sm text-primary-dark">{messages.home.step3Title}</h3>
             <p className="text-xs text-mutedText leading-relaxed">{messages.home.step3Desc}</p>
           </div>
 
-          <div className="surface-card p-5 rounded-2xl shadow-card text-center space-y-2 relative border border-hospitalBorder">
-            <div className="w-12 h-12 bg-emerald-500/10 text-emerald-600 rounded-xl flex items-center justify-center mx-auto font-bold text-lg">4</div>
+          <div className="surface-card p-5 rounded-2xl shadow-card hover:shadow-xl text-center space-y-2 relative border border-hospitalBorder hover:-translate-y-1.5 transition-all duration-300 group">
+            <div className="w-12 h-12 bg-emerald-500/10 text-emerald-600 rounded-xl flex items-center justify-center mx-auto font-bold text-lg group-hover:scale-110 transition-transform">4</div>
             <h3 className="font-bold text-sm text-primary-dark">{messages.home.step4Title}</h3>
             <p className="text-xs text-mutedText leading-relaxed">{messages.home.step4Desc}</p>
           </div>

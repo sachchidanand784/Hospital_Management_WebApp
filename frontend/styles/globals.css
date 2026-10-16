@@ -60,3 +60,93 @@
   outline: 3px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* Micro-movements & Floating Animations */
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes floatGentleReverse {
+  0%, 100% {
+    transform: translateY(-8px);
+  }
+  50% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes marqueeLeftToRight {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+@keyframes marqueeRightToLeft {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(19, 168, 158, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(19, 168, 158, 0.7);
+  }
+}
+
+.animate-float-slow {
+  animation: floatGentle 4.5s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: floatGentleReverse 5s ease-in-out infinite 0.5s;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+/* Auto-Floating Marquee Tracks */
+.marquee-track-ltr {
+  display: flex;
+  width: max-content;
+  animation: marqueeLeftToRight 35s linear infinite;
+}
+
+.marquee-track-ltr:hover,
+.marquee-track-ltr.paused {
+  animation-play-state: paused;
+}
+
+.marquee-track-rtl {
+  display: flex;
+  width: max-content;
+  animation: marqueeRightToLeft 35s linear infinite;
+}
+
+.marquee-track-rtl:hover,
+.marquee-track-rtl.paused {
+  animation-play-state: paused;
+}
+
+/* Hide scrollbar for smooth carousel containers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
