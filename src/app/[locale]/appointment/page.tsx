@@ -102,30 +102,42 @@ export default function AppointmentPage({ params }: { params: { locale: string }
     }
   };
 
-  const handleConfirmBooking = async () => {
-    const res = await bookAppointment({
-      serviceId: selectedService,
-      problemId: selectedProblem,
-      doctorId: selectedDoctor,
-      doctorPreference,
-      date: selectedDate,
-      slotStart: selectedSlot,
-      patientName,
-      patientAge,
-      patientGender,
-      patientMobile,
-      patientEmail,
-      patientAddress,
-    });
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-    if (res.success) {
-      setAppointmentCode(res.appointmentCode!);
-      setAllocatedToken(res.allocatedToken!);
-      setEtaResult(res.etaResult);
-      setBookingConfirmed(true);
-      setStep(8);
-    } else {
-      alert(locale === 'hi' ? 'बुकिंग विफल रही, कृपया पुनः प्रयास करें' : 'Booking failed, please try again');
+  const handleConfirmBooking = async () => {
+    if (isSubmitting || bookingConfirmed) return;
+    setIsSubmitting(true);
+
+    try {
+      const res = await bookAppointment({
+        serviceId: selectedService,
+        problemId: selectedProblem,
+        doctorId: selectedDoctor,
+        doctorPreference,
+        date: selectedDate,
+        slotStart: selectedSlot,
+        patientName,
+        patientAge,
+        patientGender,
+        patientMobile,
+        patientEmail,
+        patientAddress,
+      });
+
+      if (res.success) {
+        setAppointmentCode(res.appointmentCode!);
+        setAllocatedToken(res.allocatedToken!);
+        setEtaResult(res.etaResult);
+        setBookingConfirmed(true);
+        setStep(8);
+      } else {
+        alert(locale === 'hi' ? 'बुकिंग विफल रही, कृपया पुनः प्रयास करें' : 'Booking failed, please try again');
+      }
+    } catch (err) {
+      console.error('Booking error:', err);
+      alert(locale === 'hi' ? 'त्रुटि हुई, कृपया पुनः प्रयास करें' : 'An error occurred, please try again');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -398,6 +410,7 @@ export default function AppointmentPage({ params }: { params: { locale: string }
                 {locale === 'hi' ? 'ईमेल OTP भेजें' : 'Send Email OTP'}
               </button>
               <button
+                disabled={isSubmitting}
                 onClick={() => {
                   if (!patientName || !patientMobile) {
                     alert(locale === 'hi' ? 'कृपया नाम एवं मोबाइल नंबर अवश्य भरें' : 'Please provide patient name and mobile number');
@@ -405,9 +418,11 @@ export default function AppointmentPage({ params }: { params: { locale: string }
                   }
                   handleConfirmBooking();
                 }}
-                className="bg-primary text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow hover:bg-primary-dark transition"
+                className={`bg-primary text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow hover:bg-primary-dark transition flex items-center ${
+                  isSubmitting ? 'opacity-60 cursor-not-allowed' : ''
+                }`}
               >
-                {locale === 'hi' ? 'सीधे अपॉइंटमेंट बुक करें (बिना OTP)' : 'Direct Confirm Booking'}
+                {isSubmitting ? (locale === 'hi' ? 'बुकिंग हो रही है...' : 'Confirming Booking...') : (locale === 'hi' ? 'सीधे अपॉइंटमेंट बुक करें (बिना OTP)' : 'Direct Confirm Booking')}
               </button>
             </div>
           ) : (
@@ -425,6 +440,7 @@ export default function AppointmentPage({ params }: { params: { locale: string }
                   className="px-3 py-2 border border-gray-300 rounded-xl text-xs font-mono w-36 focus:outline-none"
                 />
                 <button
+                  disabled={isSubmitting}
                   onClick={() => {
                     if (otpInput === expectedOtp || !expectedOtp) {
                       handleConfirmBooking();
@@ -432,9 +448,11 @@ export default function AppointmentPage({ params }: { params: { locale: string }
                       alert(locale === 'hi' ? 'गलत ओटीपी, कृपया पुनः प्रयास करें' : 'Invalid OTP, please try again');
                     }
                   }}
-                  className="bg-success text-white px-5 py-2 rounded-xl text-xs font-bold shadow hover:bg-green-700"
+                  className={`bg-success text-white px-5 py-2 rounded-xl text-xs font-bold shadow hover:bg-green-700 flex items-center ${
+                    isSubmitting ? 'opacity-60 cursor-not-allowed' : ''
+                  }`}
                 >
-                  {messages.booking.verifyOtp}
+                  {isSubmitting ? (locale === 'hi' ? 'सत्यापित हो रहा है...' : 'Verifying...') : messages.booking.verifyOtp}
                 </button>
               </div>
             </div>

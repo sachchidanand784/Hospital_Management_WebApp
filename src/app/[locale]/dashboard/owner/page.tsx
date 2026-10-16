@@ -86,6 +86,179 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
     setIsRefreshingApt(false);
   };
 
+  const handleExportExcel = () => {
+    if (!appointments || appointments.length === 0) {
+      alert(locale === 'hi' ? 'निर्यात करने के लिए कोई अपॉइंटमेंट उपलब्ध नहीं है।' : 'No appointments available to export.');
+      return;
+    }
+
+    const hospitalName = hospitalSettings.name_en || 'M S Memorial Netralaya';
+    const reportDate = new Date().toLocaleDateString('en-GB');
+
+    const html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8">
+        <!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Appointments</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+        <style>
+          body { font-family: Arial, sans-serif; }
+          .title { font-size: 16pt; font-weight: bold; color: #0b5cff; margin-bottom: 4px; }
+          .subtitle { font-size: 10pt; color: #475569; margin-bottom: 12px; }
+          table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+          th { background-color: #0b5cff; color: #ffffff; font-weight: bold; padding: 8px; border: 1px solid #cbd5e1; text-align: left; }
+          td { padding: 8px; border: 1px solid #cbd5e1; font-size: 10pt; }
+        </style>
+      </head>
+      <body>
+        <div class="title">${hospitalName}</div>
+        <div class="subtitle">Official Patient Appointments Register — Date: ${reportDate} (Total Records: ${appointments.length})</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Appointment ID</th>
+              <th>Token</th>
+              <th>Patient Name</th>
+              <th>Doctor</th>
+              <th>Service</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${appointments.map((a) => `
+              <tr>
+                <td style="font-family: monospace;">${a.id || ''}</td>
+                <td style="font-weight: bold; color: #0b5cff;">${a.token || ''}</td>
+                <td>${a.patient || ''}</td>
+                <td>${a.doctor || ''}</td>
+                <td>${a.service || ''}</td>
+                <td>${a.date || ''}</td>
+                <td>${a.time || ''}</td>
+                <td>${a.status || ''}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `MSM-Appointments-Report-${new Date().toISOString().slice(0, 10)}.xls`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportPdf = () => {
+    if (!appointments || appointments.length === 0) {
+      alert(locale === 'hi' ? 'पीडीएफ निर्यात के लिए कोई अपॉइंटमेंट उपलब्ध नहीं है।' : 'No appointments available to export to PDF.');
+      return;
+    }
+
+    const hospitalName = hospitalSettings.name_en || 'M S Memorial Netralaya';
+    const hospitalAddress = hospitalSettings.address_en || 'Station Road, Dildarnagar, Ghazipur, Uttar Pradesh - 232326';
+    const reportDate = new Date().toLocaleDateString('en-GB');
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert(locale === 'hi' ? 'कृपया पॉप-अप विंडो की अनुमति दें' : 'Please allow pop-ups to print PDF');
+      return;
+    }
+
+    const content = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>${hospitalName} - Appointments PDF Report</title>
+        <meta charset="utf-8">
+        <style>
+          @page { size: landscape; margin: 12mm; }
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: #1e293b; margin: 0; padding: 15px; }
+          .header { border-bottom: 2px solid #0b5cff; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end; }
+          .brand h1 { font-size: 20px; margin: 0; color: #0b5cff; }
+          .brand p { margin: 2px 0 0 0; font-size: 11px; color: #64748b; }
+          .meta { text-align: right; font-size: 11px; color: #475569; }
+          .meta strong { color: #0f172a; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
+          th { background-color: #f1f5f9; color: #0f172a; font-weight: 700; text-align: left; padding: 8px 10px; border-bottom: 2px solid #cbd5e1; }
+          td { padding: 7px 10px; border-bottom: 1px solid #e2e8f0; }
+          tr:nth-child(even) { background-color: #f8fafc; }
+          .token { font-weight: 800; font-family: monospace; color: #0b5cff; }
+          .badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 9px; font-weight: 700; }
+          .badge-completed { background: #dcfce7; color: #166534; }
+          .badge-booked { background: #dbeafe; color: #1e40af; }
+          .footer { margin-top: 25px; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 10px; color: #94a3b8; display: flex; justify-content: space-between; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="brand">
+            <h1>${hospitalName}</h1>
+            <p>${hospitalAddress}</p>
+          </div>
+          <div class="meta">
+            <div>Document: <strong>Official OPD Appointments Register</strong></div>
+            <div>Date: <strong>${reportDate}</strong></div>
+            <div>Total Patients: <strong>${appointments.length}</strong></div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Token</th>
+              <th>Patient Details</th>
+              <th>Doctor</th>
+              <th>Service</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${appointments.map((a) => `
+              <tr>
+                <td style="font-family: monospace; color: #64748b;">${a.id}</td>
+                <td class="token">${a.token}</td>
+                <td><strong>${a.patient}</strong></td>
+                <td>${a.doctor}</td>
+                <td>${a.service}</td>
+                <td>${a.date}</td>
+                <td>${a.time}</td>
+                <td><span class="badge ${a.status === 'COMPLETED' ? 'badge-completed' : 'badge-booked'}">${a.status}</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="footer">
+          <span>M S Memorial Netralaya • Hospital Management Console</span>
+          <span>Confidential Medical Report</span>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 300);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(content);
+    printWindow.document.close();
+  };
+
   React.useEffect(() => {
     async function loadData() {
       const res = await getHospitalSettings();
@@ -246,9 +419,18 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
           <h1 className="text-xl font-extrabold">{locale === 'hi' ? 'ओनर / एडमिन डैशबोर्ड' : 'Owner / Admin Dashboard'}</h1>
           <p className="text-[11px] text-gray-300 mt-0.5">{locale === 'hi' ? (hospitalSettings.name_hi || 'एम एस मेमोरियल नेत्रालय') : (hospitalSettings.name_en || 'M S Memorial Netralaya')}</p>
         </div>
-        <div className="flex gap-2 shrink-0">
-          <button onClick={() => alert('Exporting CSV...')} className="bg-accent hover:bg-teal-500 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow transition">
-            <FileSpreadsheet className="w-3.5 h-3.5 mr-1" /> Export CSV
+        <div className="flex flex-wrap gap-2 shrink-0">
+          <button
+            onClick={handleExportExcel}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow transition cursor-pointer"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 mr-1.5" /> Export Excel
+          </button>
+          <button
+            onClick={handleExportPdf}
+            className="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow transition cursor-pointer"
+          >
+            <FileText className="w-3.5 h-3.5 mr-1.5" /> Export PDF
           </button>
           <Link href={`/${locale}/auth/login`} className="bg-white/10 hover:bg-white/20 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center transition">
             <LogOut className="w-3.5 h-3.5 mr-1" /> Logout
@@ -524,7 +706,19 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
                   ● Live Sync
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={handleExportExcel}
+                  className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-3 py-1.5 rounded-lg text-xs flex items-center transition cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 mr-1 text-emerald-700" /> Export Excel
+                </button>
+                <button
+                  onClick={handleExportPdf}
+                  className="bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 font-bold px-3 py-1.5 rounded-lg text-xs flex items-center transition cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5 mr-1 text-rose-700" /> Export PDF
+                </button>
                 <button
                   onClick={fetchLiveAppointments}
                   disabled={isRefreshingApt}

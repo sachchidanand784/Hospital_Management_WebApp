@@ -108,13 +108,52 @@ export async function bookAppointment(data: {
       assignedDoctorId = anyDoctor ? anyDoctor.id : null;
     }
 
-    // 3. Calculate sequential Token for this doctor and date
     const appointmentDate = new Date(data.date);
     const startOfDay = new Date(appointmentDate);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(appointmentDate);
     endOfDay.setHours(23, 59, 59, 999);
 
+    // 2.1 Deduplication Guard: Check if identical booking was submitted within last 60 seconds
+    const recentDuplicate = await prisma.appointment.findFirst({
+      where: {
+        patientId: patient.id,
+        date: appointmentDate,
+        createdAt: {
+          gte: new Date(Date.now() - 60000), // Within last 60 seconds
+        }
+      },
+      include: {
+        patient: true,
+        doctor: true,
+        service: true,
+      }
+    });
+
+    if (recentDuplicate) {
+      console.log(`[bookAppointment] Deduplicated duplicate booking attempt for ${patient.name}`);
+      return {
+        success: true,
+        appointmentCode: recentDuplicate.appointmentCode,
+        allocatedToken: recentDuplicate.tokenLabel,
+        etaResult: calculateETAWindow({
+          patientsAhead: 0,
+          avgConsultMin: 15,
+          currentTime: new Date(),
+        }),
+        appointment: {
+          id: recentDuplicate.id,
+          appointmentCode: recentDuplicate.appointmentCode,
+          tokenLabel: recentDuplicate.tokenLabel,
+          patientName: patient.name,
+          doctorName: recentDuplicate.doctor?.fullName || 'General OPD Doctor',
+          date: data.date,
+          slotStart: data.slotStart,
+        }
+      };
+    }
+
+    // 3. Calculate sequential Token for this doctor and date
     const existingCount = await prisma.appointment.count({
       where: {
         date: {
@@ -129,9 +168,9 @@ export async function bookAppointment(data: {
     const prefix = data.doctorPreference === 'SPECIFIC' ? 'A' : 'G';
     const tokenLabel = `${prefix}-${String(nextSeq).padStart(3, '0')}`;
 
-    // 4. Generate unique Appointment Code
+    // 4. Generate unique Appointment Code (MSM-YYYY-XXXXXX)
     const randomSuffix = Math.floor(100000 + Math.random() * 900000);
-    const appointmentCode = `PRY-${appointmentDate.getFullYear()}-${randomSuffix}`;
+    const appointmentCode = `MSM-${appointmentDate.getFullYear()}-${randomSuffix}`;
 
     // 5. Calculate Smart ETA
     const eta = calculateETAWindow({
