@@ -210,8 +210,12 @@ export async function getAppointments(filters?: { doctorId?: string; date?: stri
         doctor: true,
         service: true,
         problem: true,
+        examination: true,
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: [
+        { tokenSeq: 'asc' },
+        { createdAt: 'asc' }
+      ]
     });
 
     return { success: true, appointments };
@@ -298,8 +302,11 @@ export async function getLiveQueueBoardSummary() {
             doctor: true,
             service: true,
           },
-          orderBy: { createdAt: 'desc' },
-          take: 10
+          orderBy: [
+            { tokenSeq: 'asc' },
+            { createdAt: 'asc' }
+          ],
+          take: 20
         });
 
     // 1. Find currently serving patient (IN_CONSULTATION)
@@ -311,7 +318,7 @@ export async function getLiveQueueBoardSummary() {
     const nextPatient = waitingList[0];
 
     const currentServingToken = inConsultation ? inConsultation.tokenLabel : (activeList[0] ? activeList[0].tokenLabel : 'A-001');
-    const currentDoctorName = inConsultation?.doctor?.fullName || activeList[0]?.doctor?.fullName || 'Dr. Suresh Kumar Sharma';
+    const currentDoctorName = inConsultation?.doctor?.fullName || activeList[0]?.doctor?.fullName || 'Dr. Madhav Mukund';
     const nextServingToken = nextPatient ? nextPatient.tokenLabel : (activeList[1] ? activeList[1].tokenLabel : 'A-002');
     const patientsInQueue = waitingList.length;
 
@@ -354,7 +361,7 @@ export async function getLiveQueueBoardSummary() {
       totalToday: 4,
       currentServing: {
         token: 'A-001',
-        doctor: 'Dr. Suresh Kumar Sharma',
+        doctor: 'Dr. Madhav Mukund',
         status: 'IN_CONSULTATION',
         patientName: 'Ram Kumar',
       },
