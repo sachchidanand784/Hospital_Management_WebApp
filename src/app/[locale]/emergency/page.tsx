@@ -172,8 +172,8 @@ export default function EmergencyPage({ params }: { params: { locale: string } }
 
           <p className="text-xs text-mutedText max-w-md mx-auto leading-relaxed">
             {locale === 'hi'
-              ? 'आपकी आपातकालीन सूचना प्रयाग आई केयर अस्पताल की मेडिकल टीम को प्रेषित कर दी गई है। हमारी टीम तुरंत दिए गए नंबर पर संपर्क कर रही है।'
-              : 'Your emergency alert has been broadcast to Prayag Eye Care emergency staff. Our medical team is contacting your mobile immediately.'}
+              ? 'आपकी आपातकालीन सूचना एम एस मेमोरियल नेत्रालय अस्पताल की मेडिकल टीम को प्रेषित कर दी गई है। हमारी टीम तुरंत दिए गए नंबर पर संपर्क कर रही है।'
+              : 'Your emergency alert has been broadcast to M S Memorial Netralaya emergency staff. Our medical team is contacting your mobile immediately.'}
           </p>
 
           <div className="pt-4 flex justify-center">

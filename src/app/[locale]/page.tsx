@@ -16,9 +16,14 @@ import {
   ChevronRight,
   Sparkles,
   Bot,
-  Search,
   ArrowRight,
-  Glasses
+  Glasses,
+  HeartPulse,
+  Users,
+  MapPin,
+  Star,
+  Activity,
+  Image as ImageIcon
 } from 'lucide-react';
 
 import { getPublicServices, getPublicDoctors } from '@/actions/public';
@@ -32,8 +37,8 @@ export default function HomePage({ params }: { params: { locale: string } }) {
   const [hospital, setHospital] = useState<any>({
     name_en: SEED_DATA.hospital.name_en,
     name_hi: SEED_DATA.hospital.name_hi,
-    phone1: SEED_DATA.hospital.phones[0] || '+91 98765 43210',
-    emergencyPhone: SEED_DATA.hospital.emergencyPhone || '+91 98765 43210',
+    phone1: SEED_DATA.hospital.phones[0] || '+91 80048 00688',
+    emergencyPhone: SEED_DATA.hospital.emergencyPhone || '+91 80048 00688',
     openTime: '09:00',
     closeTime: '18:00',
     closedDay: 'Sunday',
@@ -49,7 +54,7 @@ export default function HomePage({ params }: { params: { locale: string } }) {
     totalToday: 4,
     currentServing: {
       token: 'A-014',
-      doctor: 'Dr. Suresh Kumar Sharma',
+      doctor: 'Dr. Madhav Mukund',
       status: 'IN_CONSULTATION',
       patientName: 'Ram Kumar',
     },
@@ -64,6 +69,8 @@ export default function HomePage({ params }: { params: { locale: string } }) {
       timeWindow: '15-20 min',
     }
   });
+
+  const [galleryFilter, setGalleryFilter] = useState<'all' | 'ot' | 'labs' | 'campus'>('all');
 
   const fetchQueueSummary = async () => {
     const qRes = await getLiveQueueBoardSummary();
@@ -128,8 +135,8 @@ export default function HomePage({ params }: { params: { locale: string } }) {
     {
       role: 'bot',
       text: locale === 'hi'
-        ? `नमस्ते! मैं ${locale === 'hi' ? hospital.name_hi || 'प्रयाग आई केयर' : hospital.name_en || 'Prayag Eye Care'} एआई सहायक हूं। अपनी आंखों की समस्या (जैसे धुंधला दिखना, मोतियाबिंद, लाली) बताएं या अस्पताल के बारे में पूछें।`
-        : `Hello! I am the ${hospital.name_en || 'Prayag Eye Care'} AI Assistant. Describe your eye symptoms (e.g. blurred vision, cataract, redness) or ask hospital FAQs.`
+        ? `नमस्ते! मैं ${locale === 'hi' ? hospital.name_hi || 'एम एस मेमोरियल नेत्रालय' : hospital.name_en || 'M S Memorial Netralaya'} एआई सहायक हूं। अपनी आंखों की समस्या (जैसे मोतियाबिंद, पर्दा/रेटिना, धुंधलापन, लाली) बताएं या अस्पताल के बारे में पूछें।`
+        : `Hello! I am the ${hospital.name_en || 'M S Memorial Netralaya'} AI Assistant. Describe your eye symptoms (e.g. blurred vision, cataract, retinal issues, redness) or ask hospital FAQs.`
     }
   ]);
 
@@ -144,28 +151,73 @@ export default function HomePage({ params }: { params: { locale: string } }) {
     setTimeout(() => {
       const lower = userText.toLowerCase();
       let botReply = locale === 'hi'
-        ? 'आपके लक्षणों के आधार पर हम "सामान्य नेत्र जांच" या "मोतियाबिंद परामर्श" की सलाह देते हैं। अपॉइंटमेंट बुक करने हेतु नीचे बटन दबाएं।'
-        : 'Based on your description, we recommend a "General Eye Checkup" or "Cataract Consultation". Click below to book an appointment.';
+        ? 'आपके लक्षणों के आधार पर हम "मोतियाबिंद परामर्श" या "विट्रियो रेटिना जांच" की सलाह देते हैं। ऑनलाइन टोकन बुक करने हेतु नीचे बटन दबाएं।'
+        : 'Based on your description, we recommend a "Cataract Consultation" or "Vitreo-Retina Evaluation". Click below to book a digital token appointment.';
 
       if (lower.includes('pain') || lower.includes('splash') || lower.includes('chemical') || lower.includes('चोट') || lower.includes('दर्द')) {
-        const phone = hospital.emergencyPhone || hospital.phone1 || '+91 98765 43210';
+        const phone = hospital.emergencyPhone || hospital.phone1 || '+91 80048 00688';
         botReply = locale === 'hi'
-          ? `⚠️ अति आवश्यक: यदि आंख में तेज दर्द या केमिकल की चोट है तो तुरंत हमारे 24 घंटे आपातकालीन नंबर ${phone} पर संपर्क करें या अस्पताल पहुंचे।`
-          : `⚠️ URGENT: If you are experiencing severe eye pain or chemical injury, please contact our 24x7 emergency helpline ${phone} or visit immediately.`;
+          ? `⚠️ अति आवश्यक: यदि आंख में गंभीर चोट, केमिकल या असहनीय दर्द है तो तुरंत हमारे 24 घंटे आपातकालीन नंबर ${phone} पर संपर्क करें या दिलदारनगर अस्पताल पहुंचे।`
+          : `⚠️ URGENT: If you are experiencing severe eye pain, trauma, or chemical injury, contact our 24x7 emergency helpline ${phone} or visit our Dildarnagar center immediately.`;
       }
 
       setAiMessages((prev) => [...prev, { role: 'bot', text: botReply }]);
     }, 600);
   };
 
+  // Hospital Gallery Photos from website
+  const galleryPhotos = [
+    { id: 1, src: '/images/gallery/gallery-1.jpg', tag: 'ot', title: 'Modular Operation Theatre' },
+    { id: 2, src: '/images/gallery/gallery-2.jpg', tag: 'ot', title: 'Micro-Incision Phaco Suite' },
+    { id: 3, src: '/images/gallery/gallery-3.jpg', tag: 'labs', title: 'Laser Diagnostics & OCT Scan' },
+    { id: 4, src: '/images/gallery/gallery-4.jpg', tag: 'campus', title: 'Air-Conditioned Patient Lounge' },
+    { id: 5, src: '/images/gallery/gallery-5.jpg', tag: 'labs', title: 'Computerized Refraction Desk' },
+    { id: 6, src: '/images/gallery/gallery-6.jpg', tag: 'campus', title: 'Consultation & Examination Room' },
+    { id: 7, src: '/images/gallery/gallery-7.jpg', tag: 'campus', title: 'Optical Wing (Chashma Ghar)' },
+    { id: 8, src: '/images/gallery/gallery-8.jpg', tag: 'labs', title: 'Advanced Retinal Camera' },
+    { id: 9, src: '/images/gallery/gallery-9.jpg', tag: 'ot', title: 'Sterile Surgical Scrub Area' },
+  ];
+
+  const filteredGallery = galleryFilter === 'all'
+    ? galleryPhotos
+    : galleryPhotos.filter(p => p.tag === galleryFilter);
+
+  // Real Patient Testimonials from website
+  const testimonials = [
+    {
+      name: 'Dr. C.D. Dwivedi',
+      comment: 'Superb clinic! You can\'t believe this type of grand ophthalmic setup exists in Dildarnagar. Even in Varanasi eye hospitals, such care is rare. Dr. Madhav Mukund is very humble, polite and excellent in his expertise. My father\'s both eye cataract surgeries were done here 2 years ago and he is doing great!',
+      rating: 5,
+      date: 'Patient Testimonial'
+    },
+    {
+      name: 'Gopal Maurya',
+      comment: 'I was here to get vision certification for RRB exam. Dr. Madhav Mukund (MBBS, MS) is a man like humble and so polite in nature. Best hospital in Zamania & Ghazipur region if you don\'t want to travel all the way to Varanasi. Digital tokens make it very smooth.',
+      rating: 5,
+      date: 'RRB Candidate & Patient'
+    },
+    {
+      name: 'Manvendra Singh (Manav)',
+      comment: 'Many congratulations and best wishes to M S Memorial Netralaya for providing world-class eye care in Dildarnagar, a small town of Ghazipur district. Top equipment, caring staff, and quick appointments.',
+      rating: 5,
+      date: 'Verified Patient'
+    },
+    {
+      name: 'Mukesh Singh',
+      comment: 'Very experienced and soft-spoken eye doctors in Dildarnagar, Ghazipur. Modern lasers, clean hospital, and zero waiting hassles thanks to the digital token system. Highly recommended!',
+      rating: 5,
+      date: 'Local Resident'
+    }
+  ];
+
   return (
     <div className="space-y-12 pb-16">
       {/* 1. HERO BANNER */}
-      <section className="relative bg-gradient-to-br from-primary-dark via-primary to-blue-900 text-white pt-12 pb-20 px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(19,168,158,0.15),transparent_50%)]"></div>
+      <section className="relative bg-gradient-to-br from-primary-dark via-primary to-blue-900 text-white pt-10 pb-16 px-4 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(19,168,158,0.2),transparent_50%)]"></div>
         <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7 space-y-5">
             <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-semibold text-cyan-200 border border-white/20">
               <span className={`w-2 h-2 rounded-full ${isOpenNow ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`}></span>
               <span>
@@ -182,8 +234,10 @@ export default function HomePage({ params }: { params: { locale: string } }) {
               {locale === 'hi' ? (hospital.name_hi || messages.home.heroTitle) : (hospital.name_en || messages.home.heroTitle)}
             </h1>
 
-            <p className="text-base sm:text-lg text-cyan-100 font-normal leading-relaxed">
-              {messages.home.heroSubtitle}
+            <p className="text-sm sm:text-base text-cyan-100 font-normal leading-relaxed">
+              {locale === 'hi'
+                ? 'दिलदारनगर (गाजीपुर) का विश्वसनीय नेत्र अस्पताल — बिना टांके का फेको मोतियाबिंद ऑपरेशन, विट्रियो-रेटिना लेजर व डिजिटल टोकन परामर्श।'
+                : messages.home.heroSubtitle}
             </p>
 
             {/* Dynamic Free OPD Banner */}
@@ -192,8 +246,8 @@ export default function HomePage({ params }: { params: { locale: string } }) {
                 <Sparkles className="w-5 h-5 text-amber-300 shrink-0 animate-bounce" />
                 <span>
                   {locale === 'hi'
-                    ? `विशेष सूचना: हर ${getDayLabel(hospital.freeCheckupDay || 'Tuesday')} को अस्पताल में निःशुल्क नेत्र जांच (Free OPD) उपलब्ध है! (समय: सुबह ${hospital.openTime} - शाम ${hospital.closeTime})`
-                    : `Special Notice: Free OPD Eye Checkup available every ${hospital.freeCheckupDay || 'Tuesday'}! (Timings: ${hospital.openTime} - ${hospital.closeTime})`}
+                    ? `विशेष सूचना: हर ${getDayLabel(hospital.freeCheckupDay || 'Tuesday')} को अस्पताल में विशेष नेत्र परामर्श उपलब्ध है! (समय: सुबह ${hospital.openTime} - शाम ${hospital.closeTime})`
+                    : `Special Notice: Free/Special OPD Eye Checkup available every ${hospital.freeCheckupDay || 'Tuesday'}! (Timings: ${hospital.openTime} - ${hospital.closeTime})`}
                 </span>
               </div>
             )}
@@ -234,10 +288,10 @@ export default function HomePage({ params }: { params: { locale: string } }) {
                 <div className="bg-hospitalBg p-3 rounded-xl border border-gray-200">
                   <span className="text-xs text-mutedText font-semibold">{messages.token.currentlyServing}</span>
                   <div className="text-3xl font-extrabold text-primary font-mono mt-1">
-                    {queueBoard.currentServing?.token || 'A-001'}
+                    {queueBoard.currentServing?.token || 'A-014'}
                   </div>
                   <span className="text-[11px] text-gray-600 font-medium block truncate mt-0.5">
-                    {queueBoard.currentServing?.doctor || 'OPD Doctor'}
+                    {queueBoard.currentServing?.doctor || 'Dr. Madhav Mukund'}
                   </span>
                 </div>
                 <div className="bg-hospitalBg p-3 rounded-xl border border-gray-200">
@@ -245,7 +299,7 @@ export default function HomePage({ params }: { params: { locale: string } }) {
                     {locale === 'hi' ? 'अगला टोकन' : 'Next Token'}
                   </span>
                   <div className="text-3xl font-extrabold text-amber-600 font-mono mt-1">
-                    {queueBoard.nextToken?.token || 'A-002'}
+                    {queueBoard.nextToken?.token || 'A-015'}
                   </div>
                   <span className="text-[11px] text-gray-600 font-medium block truncate mt-0.5">
                     {queueBoard.nextToken?.status || (locale === 'hi' ? 'प्रतीक्षालय में' : 'Waiting in Lounge')}
@@ -284,7 +338,188 @@ export default function HomePage({ params }: { params: { locale: string } }) {
         </div>
       </section>
 
-      {/* 2. HOW DIGITAL TOKEN BOOKING WORKS */}
+      {/* 2. TRUST STATS & HIGHLIGHTS BAR */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 relative z-20">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="surface-card p-4 rounded-xl shadow-card border border-hospitalBorder flex items-center space-x-3">
+            <div className="w-10 h-10 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+              <Award className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-lg font-extrabold text-primary-dark">Est. 2008</p>
+              <p className="text-[11px] text-mutedText">{locale === 'hi' ? '16+ वर्षों का भरोसा' : '16+ Years of Trust'}</p>
+            </div>
+          </div>
+
+          <div className="surface-card p-4 rounded-xl shadow-card border border-hospitalBorder flex items-center space-x-3">
+            <div className="w-10 h-10 bg-accent/10 text-accent rounded-lg flex items-center justify-center shrink-0">
+              <Eye className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-lg font-extrabold text-primary-dark">50,000+</p>
+              <p className="text-[11px] text-mutedText">{locale === 'hi' ? 'सफल नेत्र उपचार' : 'Happy Patients'}</p>
+            </div>
+          </div>
+
+          <div className="surface-card p-4 rounded-xl shadow-card border border-hospitalBorder flex items-center space-x-3">
+            <div className="w-10 h-10 bg-emerald-500/10 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-lg font-extrabold text-primary-dark">{locale === 'hi' ? 'मॉड्यूलर ओटी' : 'Modular OT'}</p>
+              <p className="text-[11px] text-mutedText">{locale === 'hi' ? 'विश्वस्तरीय फेको मशीन' : 'Advanced Surgical Suites'}</p>
+            </div>
+          </div>
+
+          <div className="surface-card p-4 rounded-xl shadow-card border border-hospitalBorder flex items-center space-x-3">
+            <div className="w-10 h-10 bg-amber-500/10 text-amber-600 rounded-lg flex items-center justify-center shrink-0">
+              <Clock className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-lg font-extrabold text-primary-dark">{locale === 'hi' ? 'डिजिटल कतार' : 'Digital Tokens'}</p>
+              <p className="text-[11px] text-mutedText">{locale === 'hi' ? 'शून्य प्रतीक्षा समय' : 'Live ETA Wait Tracking'}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. ABOUT HOSPITAL & FOUNDER SHOWCASE */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="surface-card rounded-2xl shadow-card border border-hospitalBorder p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          
+          <div className="lg:col-span-7 space-y-4">
+            <div className="inline-flex items-center space-x-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold">
+              <HeartPulse className="w-4 h-4" />
+              <span>{locale === 'hi' ? 'गाजीपुर का सर्वश्रेष्ठ नेत्र चिकित्सालय' : 'Best Eye Centre in Ghazipur'}</span>
+            </div>
+
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-primary-dark leading-tight">
+              {locale === 'hi' 
+                ? 'एम एस मेमोरियल नेत्रालय — एक छत के नीचे सम्पूर्ण नेत्र समाधान' 
+                : 'Welcome to M S Memorial Netralaya Hospital'}
+            </h2>
+
+            <p className="text-xs sm:text-sm text-mutedText leading-relaxed">
+              {locale === 'hi'
+                ? '2008 में स्थापित, एम एस मेमोरियल नेत्रालय पूर्वी उत्तर प्रदेश के दिलदारनगर में ग्रामीण व शहरी मरीजों को उच्चतम स्तर की फेको मोतियाबिंद एवं रेटिना लेजर सुविधाएं उपलब्ध कराने के लिए समर्पित है। हमारे संस्थापक डॉ० माधव मुकुंद (MBBS - KGMC लखनऊ, MS - GSVM कानपुर) के नेतृत्व में अस्पताल विश्वस्तरीय आयातित उपकरणों से सुसज्जित है।'
+                : 'Established in 2008 in Dildarnagar, M S Memorial Netralaya is equipped with world-class, imported instruments for simple and complex disorders of the eye. Led by Dr. Madhaw Mukund (KGMC Lucknow & GSVM Kanpur), our hospital brings advanced micro-incision cataract surgery, German retinal lasers, and patient comfort directly to Eastern UP.'}
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-hospitalText pt-2">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{locale === 'hi' ? 'फेको मोतियाबिंद बिना टांके का ऑपरेशन' : 'Stitchless Micro-Incision Phaco'}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{locale === 'hi' ? 'उत्तर भारत के शीर्ष रेटिना विशेषज्ञ' : 'Renowned Vitreo-Retina Specialists'}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{locale === 'hi' ? 'वातानुकूलित ओपीडी व प्रतीक्षा लाउंज' : 'Centrally Air-Conditioned OPD & Lounge'}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{locale === 'hi' ? '24x7 आंख की चोट व इमरजेंसी सुविधा' : '24x7 Ocular Emergency Services'}</span>
+              </div>
+            </div>
+
+            <div className="pt-3 flex flex-wrap gap-3">
+              <Link
+                href={`/${locale}/about`}
+                className="bg-primary hover:bg-primary-dark text-white text-xs font-bold px-5 py-2.5 rounded-xl transition flex items-center shadow-sm"
+              >
+                {locale === 'hi' ? 'विस्तार से जानें' : 'Read Full History'} <ArrowRight className="w-4 h-4 ml-1.5" />
+              </Link>
+              <a
+                href={`tel:${hospital.phone1.replace(/\s/g, '')}`}
+                className="bg-gray-100 hover:bg-gray-200 text-primary-dark text-xs font-bold px-5 py-2.5 rounded-xl transition flex items-center"
+              >
+                📞 {hospital.phone1}
+              </a>
+            </div>
+          </div>
+
+          <div className="lg:col-span-5 space-y-4">
+            <div className="relative rounded-2xl overflow-hidden shadow-xl border-4 border-white">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/hospital-building.jpg"
+                alt="M S Memorial Netralaya Campus"
+                className="w-full h-72 object-cover hover:scale-105 transition duration-500"
+              />
+              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 text-white">
+                <p className="text-sm font-bold">M S Memorial Netralaya</p>
+                <p className="text-[11px] text-gray-200 flex items-center mt-0.5">
+                  <MapPin className="w-3.5 h-3.5 mr-1 text-cyan-300" /> Dildarnagar Tarighat Road, Ghazipur
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* 4. HOSPITAL SERVICES GRID */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-primary-dark">{messages.services.title}</h2>
+            <p className="text-xs sm:text-sm text-mutedText mt-1">
+              {locale === 'hi'
+                ? 'मोतियाबिंद, रेटिना, ग्लूकोमा एवं चश्मा हटाने की आधुनिकतम सुविधाएं'
+                : 'Comprehensive specialized ophthalmic care with imported precision equipment.'}
+            </p>
+          </div>
+          <Link href={`/${locale}/services`} className="text-xs font-bold text-primary hover:underline flex items-center mt-2 sm:mt-0">
+            {messages.common.viewDetails} <ChevronRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {services.map((srv, idx) => {
+            // Match with website service icons if available
+            const iconMap: Record<string, string> = {
+              'srv-cataract': '/images/services/cataract.png',
+              'srv-retina': '/images/services/retina.png',
+              'srv-glaucoma': '/images/services/glaucoma.png',
+              'srv-oculoplasty': '/images/services/oculoplasty.png',
+            };
+            const customIcon = iconMap[srv.id];
+
+            return (
+              <div key={srv.id} className="surface-card p-6 rounded-2xl shadow-card hover:shadow-xl transition space-y-3 flex flex-col justify-between border border-hospitalBorder">
+                <div className="space-y-3">
+                  <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center p-2">
+                    {customIcon ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={customIcon} alt={srv.name_en} className="w-8 h-8 object-contain" />
+                    ) : (
+                      <Eye className="w-6 h-6" />
+                    )}
+                  </div>
+                  <h3 className="font-bold text-base text-primary-dark">{locale === 'hi' ? srv.name_hi : srv.name_en}</h3>
+                  <p className="text-xs text-mutedText leading-relaxed">{locale === 'hi' ? srv.desc_hi : srv.desc_en}</p>
+                </div>
+
+                <div className="pt-3 border-t border-gray-100 flex justify-between items-center text-xs">
+                  <span className="font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md">
+                    {srv.defaultFee > 0 ? `Fee ₹${srv.defaultFee}` : 'Free OPD'} ({messages.common.feeNotice})
+                  </span>
+                  <Link
+                    href={`/${locale}/appointment?service=${srv.id}`}
+                    className="font-bold text-primary hover:text-primary-dark flex items-center"
+                  >
+                    {messages.common.bookAppointment} <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* 5. HOW DIGITAL TOKEN BOOKING WORKS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <h2 className="text-2xl sm:text-3xl font-bold text-primary-dark">{messages.home.howItWorksTitle}</h2>
@@ -296,25 +531,25 @@ export default function HomePage({ params }: { params: { locale: string } }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="surface-card p-5 rounded-2xl shadow-card text-center space-y-2 relative">
+          <div className="surface-card p-5 rounded-2xl shadow-card text-center space-y-2 relative border border-hospitalBorder">
             <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mx-auto font-bold text-lg">1</div>
             <h3 className="font-bold text-sm text-primary-dark">{messages.home.step1Title}</h3>
             <p className="text-xs text-mutedText leading-relaxed">{messages.home.step1Desc}</p>
           </div>
 
-          <div className="surface-card p-5 rounded-2xl shadow-card text-center space-y-2 relative">
+          <div className="surface-card p-5 rounded-2xl shadow-card text-center space-y-2 relative border border-hospitalBorder">
             <div className="w-12 h-12 bg-accent/10 text-accent rounded-xl flex items-center justify-center mx-auto font-bold text-lg">2</div>
             <h3 className="font-bold text-sm text-primary-dark">{messages.home.step2Title}</h3>
             <p className="text-xs text-mutedText leading-relaxed">{messages.home.step2Desc}</p>
           </div>
 
-          <div className="surface-card p-5 rounded-2xl shadow-card text-center space-y-2 relative">
+          <div className="surface-card p-5 rounded-2xl shadow-card text-center space-y-2 relative border border-hospitalBorder">
             <div className="w-12 h-12 bg-amber-500/10 text-amber-600 rounded-xl flex items-center justify-center mx-auto font-bold text-lg">3</div>
             <h3 className="font-bold text-sm text-primary-dark">{messages.home.step3Title}</h3>
             <p className="text-xs text-mutedText leading-relaxed">{messages.home.step3Desc}</p>
           </div>
 
-          <div className="surface-card p-5 rounded-2xl shadow-card text-center space-y-2 relative">
+          <div className="surface-card p-5 rounded-2xl shadow-card text-center space-y-2 relative border border-hospitalBorder">
             <div className="w-12 h-12 bg-emerald-500/10 text-emerald-600 rounded-xl flex items-center justify-center mx-auto font-bold text-lg">4</div>
             <h3 className="font-bold text-sm text-primary-dark">{messages.home.step4Title}</h3>
             <p className="text-xs text-mutedText leading-relaxed">{messages.home.step4Desc}</p>
@@ -322,87 +557,71 @@ export default function HomePage({ params }: { params: { locale: string } }) {
         </div>
       </section>
 
-      {/* 3. HOSPITAL SERVICES GRID */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-primary-dark">{messages.services.title}</h2>
-            <p className="text-xs sm:text-sm text-mutedText mt-1">{messages.services.subtitle}</p>
-          </div>
-          <Link href={`/${locale}/services`} className="text-xs font-bold text-primary hover:underline flex items-center mt-2 sm:mt-0">
-            {messages.common.viewDetails} <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {services.map((srv) => (
-            <div key={srv.id} className="surface-card p-6 rounded-2xl shadow-card hover:shadow-xl transition space-y-3 flex flex-col justify-between">
-              <div className="space-y-3">
-                <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
-                  <Eye className="w-5 h-5" />
-                </div>
-                <h3 className="font-bold text-base text-primary-dark">{locale === 'hi' ? srv.name_hi : srv.name_en}</h3>
-                <p className="text-xs text-mutedText leading-relaxed">{locale === 'hi' ? srv.desc_hi : srv.desc_en}</p>
-              </div>
-
-              <div className="pt-3 border-t border-gray-100 flex justify-between items-center text-xs">
-                <span className="font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md">
-                  {srv.defaultFee > 0 ? `Fee ₹${srv.defaultFee}` : 'Free OPD'} ({messages.common.feeNotice})
-                </span>
-                <Link
-                  href={`/${locale}/appointment?service=${srv.id}`}
-                  className="font-bold text-primary hover:text-primary-dark flex items-center"
-                >
-                  {messages.common.bookAppointment} <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 4. VERIFIED DOCTORS DIRECTORY */}
+      {/* 6. VERIFIED SPECIALISTS DIRECTORY */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="flex justify-between items-end">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-primary-dark">{messages.home.featuredDoctors}</h2>
-            <p className="text-xs sm:text-sm text-mutedText mt-1">{messages.doctors.subtitle}</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-primary-dark">
+              {locale === 'hi' ? 'हमारे प्रमाणित नेत्र रोग विशेषज्ञ' : 'Group Of Certified & Experienced Doctors'}
+            </h2>
+            <p className="text-xs sm:text-sm text-mutedText mt-1">
+              {locale === 'hi'
+                ? 'केजीएमसी, जीएसवीएम एवं अंतरराष्ट्रीय संस्थानों से प्रशिक्षित वरिष्ठ नेत्र सर्जन'
+                : 'Consult directly with experienced ophthalmic and vitreo-retinal specialists.'}
+            </p>
           </div>
           <Link href={`/${locale}/doctors`} className="text-xs font-bold text-primary hover:underline flex items-center">
             {messages.common.viewDetails} <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {doctors.map((doc) => (
-            <div key={doc.id} className="surface-card p-5 rounded-2xl shadow-card hover:shadow-xl transition space-y-3 flex flex-col justify-between">
+            <div key={doc.id} className="surface-card p-6 rounded-2xl shadow-card hover:shadow-xl transition space-y-4 flex flex-col justify-between border border-hospitalBorder">
               <div className="space-y-3 text-center">
-                {/* Doctor Neutral Avatar */}
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-cyan-100 text-primary rounded-full flex items-center justify-center mx-auto border-2 border-primary/20 shadow">
-                  <span className="text-xl font-extrabold">{doc.fullName.split(' ').map((n: any) => n[0]).join('')}</span>
-                </div>
-
-                <div>
-                  <h3 className="font-bold text-sm text-primary-dark">{doc.fullName}</h3>
-                  <span className="text-[11px] font-semibold text-accent block mt-0.5">
-                    {locale === 'hi' ? doc.specialization_hi : doc.specialization_en}
+                {/* Doctor Avatar with real photo if available */}
+                <div className="relative w-28 h-28 mx-auto">
+                  {doc.photoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={doc.photoUrl}
+                      alt={doc.fullName}
+                      className="w-28 h-28 object-cover rounded-full border-2 border-primary shadow"
+                    />
+                  ) : (
+                    <div className="w-28 h-28 bg-gradient-to-br from-blue-100 to-cyan-100 text-primary rounded-full flex items-center justify-center mx-auto border-2 border-primary/20 shadow">
+                      <span className="text-2xl font-extrabold">{doc.fullName.split(' ').map((n: any) => n[0]).join('')}</span>
+                    </div>
+                  )}
+                  <span className="absolute bottom-0 right-1 bg-emerald-500 text-white p-1 rounded-full text-[10px] shadow">
+                    ✓
                   </span>
                 </div>
 
-                <p className="text-xs text-mutedText line-clamp-2 leading-relaxed">
+                <div>
+                  <h3 className="font-bold text-base text-primary-dark">{doc.fullName}</h3>
+                  <span className="text-xs font-semibold text-accent block mt-0.5">
+                    {locale === 'hi' ? doc.specialization_hi : doc.specialization_en}
+                  </span>
+                  <span className="text-[11px] text-gray-500 block mt-0.5 font-medium">
+                    {doc.qualification}
+                  </span>
+                </div>
+
+                <p className="text-xs text-mutedText line-clamp-3 leading-relaxed">
                   {locale === 'hi' ? doc.bio_hi : doc.bio_en}
                 </p>
               </div>
 
               <div className="pt-3 border-t border-gray-100 space-y-2">
-                <div className="flex justify-between text-[11px] text-mutedText">
+                <div className="flex justify-between text-xs text-mutedText">
                   <span>{doc.experienceYears} {messages.doctors.experience}</span>
-                  <span className="font-bold text-primary-dark">₹{doc.consultationFee}</span>
+                  <span className="font-bold text-primary-dark">Fee: ₹{doc.consultationFee}</span>
                 </div>
 
                 <Link
                   href={`/${locale}/appointment?doctor=${doc.id}`}
-                  className="w-full bg-primary hover:bg-primary-dark text-white py-2 rounded-xl text-xs font-bold text-center block transition shadow-sm"
+                  className="w-full bg-primary hover:bg-primary-dark text-white py-2.5 rounded-xl text-xs font-bold text-center block transition shadow-sm"
                 >
                   {messages.doctors.bookWithDoctor}
                 </Link>
@@ -412,7 +631,114 @@ export default function HomePage({ params }: { params: { locale: string } }) {
         </div>
       </section>
 
-      {/* 5. AI CHAT FLOATING WIDGET */}
+      {/* 7. HOSPITAL PHOTO GALLERY SHOWCASE */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end">
+          <div>
+            <div className="inline-flex items-center space-x-1.5 bg-accent/10 text-accent px-3 py-1 rounded-full text-xs font-bold mb-2">
+              <ImageIcon className="w-3.5 h-3.5" />
+              <span>{locale === 'hi' ? 'अस्पताल फोटो गैलरी' : 'Hospital Photo Gallery'}</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-primary-dark">
+              {locale === 'hi' ? 'एम एस मेमोरियल नेत्रालय परिसर एवं सुविधाएं' : 'World-Class Facility & Infrastructure'}
+            </h2>
+            <p className="text-xs sm:text-sm text-mutedText mt-1">
+              {locale === 'hi'
+                ? 'हमारे अत्याधुनिक मॉड्यूलर ओटी, लेजर जांच केंद्र व वातानुकूलित लाउंज की वास्तविक झलकियां।'
+                : 'A glimpse into our sterile modular OT, laser diagnostic wings, and patient waiting areas.'}
+            </p>
+          </div>
+
+          {/* Filter Tabs */}
+          <div className="flex space-x-2 bg-gray-100 p-1 rounded-xl text-xs font-bold mt-4 sm:mt-0">
+            <button
+              onClick={() => setGalleryFilter('all')}
+              className={`px-3 py-1.5 rounded-lg transition ${galleryFilter === 'all' ? 'bg-primary text-white shadow' : 'text-gray-600 hover:text-black'}`}
+            >
+              {locale === 'hi' ? 'सभी फोटो' : 'All'}
+            </button>
+            <button
+              onClick={() => setGalleryFilter('ot')}
+              className={`px-3 py-1.5 rounded-lg transition ${galleryFilter === 'ot' ? 'bg-primary text-white shadow' : 'text-gray-600 hover:text-black'}`}
+            >
+              {locale === 'hi' ? 'ऑपरेशन थिएटर' : 'Operation Theatre'}
+            </button>
+            <button
+              onClick={() => setGalleryFilter('labs')}
+              className={`px-3 py-1.5 rounded-lg transition ${galleryFilter === 'labs' ? 'bg-primary text-white shadow' : 'text-gray-600 hover:text-black'}`}
+            >
+              {locale === 'hi' ? 'निदान व लेजर' : 'Diagnostics & Laser'}
+            </button>
+            <button
+              onClick={() => setGalleryFilter('campus')}
+              className={`px-3 py-1.5 rounded-lg transition ${galleryFilter === 'campus' ? 'bg-primary text-white shadow' : 'text-gray-600 hover:text-black'}`}
+            >
+              {locale === 'hi' ? 'परिसर व लाउंज' : 'Campus & Lounge'}
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+          {filteredGallery.map((photo) => (
+            <div
+              key={photo.id}
+              className="group relative rounded-2xl overflow-hidden shadow-card border border-hospitalBorder bg-black h-48 sm:h-64"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={photo.src}
+                alt={photo.title}
+                className="w-full h-full object-cover group-hover:scale-110 transition duration-500 opacity-95 group-hover:opacity-100"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4">
+                <span className="text-white text-xs sm:text-sm font-bold">{photo.title}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 8. REAL PATIENT TESTIMONIALS */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div className="text-center max-w-2xl mx-auto space-y-2">
+          <div className="inline-flex items-center space-x-1.5 bg-amber-500/10 text-amber-600 px-3 py-1 rounded-full text-xs font-bold">
+            <Star className="w-3.5 h-3.5 fill-current" />
+            <span>{locale === 'hi' ? 'संतुष्ट मरीज' : 'Patient Reviews'}</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-primary-dark">
+            {locale === 'hi' ? 'हमारे मरीज क्या कहते हैं' : 'What Our Patients Say About Us'}
+          </h2>
+          <p className="text-xs sm:text-sm text-mutedText">
+            {locale === 'hi'
+              ? 'दिलदारनगर, जमानिया, गाजीपुर एवं आसपास के हजारों मरीजों का विश्वसनीय अनुभव।'
+              : 'Real feedback from patients across Dildarnagar, Zamania, and Ghazipur.'}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {testimonials.map((t, i) => (
+            <div key={i} className="surface-card p-5 rounded-2xl shadow-card border border-hospitalBorder flex flex-col justify-between space-y-3">
+              <div className="space-y-2">
+                <div className="flex text-amber-400">
+                  {[...Array(t.rating)].map((_, r) => (
+                    <Star key={r} className="w-4 h-4 fill-current" />
+                  ))}
+                </div>
+                <p className="text-xs text-mutedText leading-relaxed italic line-clamp-6">
+                  &ldquo;{t.comment}&rdquo;
+                </p>
+              </div>
+
+              <div className="pt-3 border-t border-gray-100">
+                <p className="font-bold text-xs text-primary-dark">{t.name}</p>
+                <p className="text-[10px] text-gray-500">{t.date}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 9. AI CHAT FLOATING WIDGET (UNTOUCHED FUNCTIONALITY) */}
       <div className="fixed bottom-20 right-4 z-40">
         {!aiChatOpen ? (
           <button

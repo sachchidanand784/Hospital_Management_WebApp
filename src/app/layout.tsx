@@ -2,8 +2,8 @@ import React from 'react';
 import '@frontend/styles/globals.css';
 
 export const metadata = {
-  title: 'Prayag Eye Care & Laser Centre | Hospital Management & Token System',
-  description: 'Advanced Eye Hospital Management, Appointment Booking, Digital Tokens & Emergency Care in Prayagraj.',
+  title: 'M S Memorial Netralaya | Hospital Management & Token System',
+  description: 'Advanced Eye Hospital Management, Appointment Booking, Digital Tokens & Emergency Care in Dildarnagar, Ghazipur.',
 };
 
 export default function RootLayout({

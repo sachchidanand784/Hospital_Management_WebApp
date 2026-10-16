@@ -28,10 +28,10 @@ export default function TvDisplayPage({ params }: { params: { queue: string } })
           </div>
           <div>
             <h1 className="text-3xl sm:text-5xl font-extrabold text-cyan-400 tracking-tight">
-              प्रयाग आई केयर एवं लेजर सेंटर
+              एम एस मेमोरियल नेत्रालय
             </h1>
             <span className="text-base sm:text-xl text-gray-400 font-semibold block mt-1">
-              Prayag Eye Care & Laser Centre — Live Digital Token Board
+              M S Memorial Netralaya — Live Digital Token Board
             </span>
           </div>
         </div>
@@ -91,7 +91,7 @@ export default function TvDisplayPage({ params }: { params: { queue: string } })
 
       {/* Footer Disclaimer */}
       <div className="text-center text-xs text-gray-500 border-t border-gray-800 pt-4">
-        Prayag Eye Hospital Live Queue System • Automated Real-time Sync
+        M S Memorial Netralaya Live Queue System • Automated Real-time Sync
       </div>
     </div>
   );

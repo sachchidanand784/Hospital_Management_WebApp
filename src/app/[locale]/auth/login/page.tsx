@@ -34,7 +34,7 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
             <Eye className="w-6 h-6" />
           </div>
           <h1 className="text-xl font-extrabold text-primary-dark">{messages.nav.login}</h1>
-          <p className="text-xs text-mutedText">Prayag Eye Care Hospital Staff Access Portal</p>
+          <p className="text-xs text-mutedText">M S Memorial Netralaya Staff Access Portal</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">

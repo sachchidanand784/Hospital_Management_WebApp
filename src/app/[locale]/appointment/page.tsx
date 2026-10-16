@@ -62,7 +62,7 @@ export default function AppointmentPage({ params }: { params: { locale: string }
   const [patientGender, setPatientGender] = useState<string>('Male');
   const [patientMobile, setPatientMobile] = useState<string>('');
   const [patientEmail, setPatientEmail] = useState<string>('');
-  const [patientAddress, setPatientAddress] = useState<string>('Prayagraj');
+  const [patientAddress, setPatientAddress] = useState<string>('Ghazipur');
   const [consent, setConsent] = useState<boolean>(true);
   const [otpSent, setOtpSent] = useState<boolean>(false);
   const [otpInput, setOtpInput] = useState<string>('');
@@ -382,7 +382,7 @@ export default function AppointmentPage({ params }: { params: { locale: string }
                 type="text"
                 value={patientAddress}
                 onChange={(e) => setPatientAddress(e.target.value)}
-                placeholder="e.g. Civil Lines, Prayagraj"
+                placeholder="e.g. Dildarnagar, Ghazipur"
                 className="w-full p-2.5 border border-gray-300 rounded-xl text-xs focus:border-primary focus:outline-none"
               />
             </div>
@@ -472,7 +472,7 @@ export default function AppointmentPage({ params }: { params: { locale: string }
 
             <div className="bg-white p-3 rounded-xl border border-gray-200 text-xs text-left space-y-1">
               <div className="flex justify-between"><span className="text-mutedText">Patient:</span> <span className="font-bold">{patientName}</span></div>
-              <div className="flex justify-between"><span className="text-mutedText">Hospital:</span> <span className="font-bold">Prayag Eye Care, Prayagraj</span></div>
+              <div className="flex justify-between"><span className="text-mutedText">Hospital:</span> <span className="font-bold">M S Memorial Netralaya, Dildarnagar, Ghazipur</span></div>
               <div className="flex justify-between"><span className="text-mutedText">Fee Notice:</span> <span className="font-bold text-emerald-700">{messages.common.feeNotice}</span></div>
             </div>
 
@@ -501,7 +501,7 @@ export default function AppointmentPage({ params }: { params: { locale: string }
               <Download className="w-4 h-4 mr-1.5" /> {messages.booking.downloadPdf}
             </a>
             <a 
-              href={`https://wa.me/?text=${encodeURIComponent(`Hi ${patientName}, your appointment at Prayag Eye Care is confirmed. Token: ${allocatedToken}. Time: ${selectedDate} ${selectedSlot}.`)}`}
+              href={`https://wa.me/?text=${encodeURIComponent(`Hi ${patientName}, your appointment at M S Memorial Netralaya is confirmed. Token: ${allocatedToken}. Time: ${selectedDate} ${selectedSlot}.`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center shadow hover:bg-emerald-700"

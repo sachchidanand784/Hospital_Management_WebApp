@@ -38,9 +38,9 @@ export async function submitEmergencyRequest(data: {
     if (data.email) {
       try {
         await transporter.sendMail({
-          from: process.env.SMTP_FROM || 'Prayag Eye Care <noreply@prayageyecare.com>',
+          from: process.env.SMTP_FROM || 'M S Memorial Netralaya <noreply@msmemorialnetralaya.com>',
           to: data.email,
-          subject: 'Emergency Alert Received - Prayag Eye Care',
+          subject: 'Emergency Alert Received - M S Memorial Netralaya',
           html: `
             <h2>Emergency Alert Received</h2>
             <p>Dear ${data.name},</p>
@@ -48,7 +48,7 @@ export async function submitEmergencyRequest(data: {
             <p>Our medical team has been notified and will contact you immediately at your mobile number: <strong>${data.mobile}</strong>.</p>
             <p>If the situation is critical, please proceed to the nearest hospital immediately.</p>
             <br/>
-            <p>Prayag Eye Care Team</p>
+            <p>M S Memorial Netralaya Team</p>
           `,
         });
       } catch (emailError) {

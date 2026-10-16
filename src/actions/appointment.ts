@@ -19,18 +19,18 @@ export async function sendEmailOtp(email: string) {
     });
 
     const mailOptions = {
-      from: process.env.SMTP_FROM || 'Prayag Eye Care <noreply@prayageyecare.com>',
+      from: process.env.SMTP_FROM || 'M S Memorial Netralaya <noreply@msmemorialnetralaya.com>',
       to: email,
-      subject: 'Verify your email - Prayag Eye Care',
-      text: `Hello,\n\nPlease verify your email to continue your appointment booking. Your verification code is: ${generatedOtp}\n\nThank you,\nPrayag Eye Care`,
+      subject: 'Verify your email - M S Memorial Netralaya',
+      text: `Hello,\n\nPlease verify your email to continue your appointment booking. Your verification code is: ${generatedOtp}\n\nThank you,\nM S Memorial Netralaya`,
       html: `
         <div style="font-family: sans-serif; padding: 20px; color: #333;">
-          <h2 style="color: #0d9488;">Prayag Eye Care</h2>
+          <h2 style="color: #0d9488;">M S Memorial Netralaya</h2>
           <p>Hello,</p>
           <p>Please verify your email to continue your appointment booking. Your verification code is:</p>
           <h1 style="letter-spacing: 5px; color: #0f766e;">${generatedOtp}</h1>
           <p>If you did not request this, please ignore this email.</p>
-          <p>Thank you,<br/>Prayag Eye Care</p>
+          <p>Thank you,<br/>M S Memorial Netralaya</p>
         </div>
       `,
     };
@@ -74,7 +74,7 @@ export async function bookAppointment(data: {
 
     if (!patient) {
       const count = await prisma.patient.count();
-      const uhid = `PRY-${new Date().getFullYear()}-${String(count + 1).padStart(6, '0')}`;
+      const uhid = `MSM-${new Date().getFullYear()}-${String(count + 1).padStart(6, '0')}`;
       patient = await prisma.patient.create({
         data: {
           uhid,
@@ -83,7 +83,7 @@ export async function bookAppointment(data: {
           gender: data.patientGender || 'Male',
           mobile: data.patientMobile,
           email: data.patientEmail || null,
-          address: data.patientAddress || 'Prayagraj',
+          address: data.patientAddress || 'Dildarnagar, Ghazipur',
         }
       });
     } else {

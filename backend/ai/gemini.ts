@@ -27,7 +27,7 @@ export class GeminiAIProvider implements AIProvider {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `System: You are an AI Eye Care Assistant for Prayag Eye Hospital. Never diagnose. Answer concisely in ${locale === 'hi' ? 'Hindi' : 'English'}.\nUser: ${safePrompt}` }] }],
+            contents: [{ parts: [{ text: `System: You are an AI Eye Care Assistant for M S Memorial Netralaya. Never diagnose. Answer concisely in ${locale === 'hi' ? 'Hindi' : 'English'}.\nUser: ${safePrompt}` }] }],
           }),
         }
       );

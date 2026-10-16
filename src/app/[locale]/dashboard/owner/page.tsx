@@ -244,7 +244,7 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
         <div>
           <span className="text-[10px] font-bold text-cyan-300 uppercase tracking-widest">{locale === 'hi' ? 'अस्पताल प्रशासन कंसोल' : 'Hospital Administration Console'}</span>
           <h1 className="text-xl font-extrabold">{locale === 'hi' ? 'ओनर / एडमिन डैशबोर्ड' : 'Owner / Admin Dashboard'}</h1>
-          <p className="text-[11px] text-gray-300 mt-0.5">Prayag Eye Care & Laser Centre</p>
+          <p className="text-[11px] text-gray-300 mt-0.5">{locale === 'hi' ? (hospitalSettings.name_hi || 'एम एस मेमोरियल नेत्रालय') : (hospitalSettings.name_en || 'M S Memorial Netralaya')}</p>
         </div>
         <div className="flex gap-2 shrink-0">
           <button onClick={() => alert('Exporting CSV...')} className="bg-accent hover:bg-teal-500 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow transition">

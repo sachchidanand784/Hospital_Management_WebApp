@@ -97,11 +97,16 @@ export const Navbar: React.FC<NavbarProps> = ({ locale, messages, hospital }) =>
       {/* ─── Row 2: Brand + CTA Buttons ─── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         {/* Brand */}
-        <Link href={`/${locale}`} className="flex items-center space-x-2 shrink-0">
-          <div className="bg-primary text-white p-1.5 rounded-lg shadow">
-            <Eye className="w-5 h-5" />
+        <Link href={`/${locale}`} className="flex items-center space-x-2.5 shrink-0">
+          <div className="h-10 flex items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/logo.png"
+              alt={hospitalName}
+              className="h-9 w-auto object-contain max-w-[150px] sm:max-w-[200px]"
+            />
           </div>
-          <div>
+          <div className="border-l border-gray-200 pl-2 hidden lg:block">
             <span className="text-sm font-extrabold text-primary-dark tracking-tight block leading-tight max-w-[240px] sm:max-w-sm truncate">
               {hospitalName}
             </span>

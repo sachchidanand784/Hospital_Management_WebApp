@@ -37,19 +37,19 @@ export default function ContactPage({ params }: { params: { locale: string } }) 
   };
 
   const CONTACT_INFO = {
-    address_hi: '12/4, सिविल लाइंस, एमजी मार्ग के पास, प्रयागराज, उत्तर प्रदेश — 211001',
-    address_en: '12/4, Civil Lines, Near MG Marg, Prayagraj, Uttar Pradesh — 211001',
+    address_hi: 'दिलदारनगर ताड़ीघाट रोड, बंगलापार, दिलदारनगर, गाजीपुर, उत्तर प्रदेश — 232326',
+    address_en: 'Dildarnagar Tarighat Road, Bangalapar, Dildarnagar, Ghazipur, Uttar Pradesh — 232326',
     phones: [
-      { label_hi: 'मुख्य हेल्पलाइन', label_en: 'Main Helpline', number: '+91 98765 43210' },
-      { label_hi: 'ओपीडी काउंटर', label_en: 'OPD Counter', number: '0532-2400112' },
-      { label_hi: 'आपातकालीन (24x7)', label_en: 'Emergency (24×7)', number: '+91 98765 43210', isEmergency: true },
+      { label_hi: 'मुख्य हेल्पलाइन', label_en: 'Main Helpline', number: '+91 80048 00688' },
+      { label_hi: 'ओपीडी / परामर्श', label_en: 'OPD / Enquiry', number: '+91 80048 00699' },
+      { label_hi: 'आपातकालीन (24x7)', label_en: 'Emergency (24×7)', number: '+91 80048 00688', isEmergency: true },
     ],
-    email: 'info@prayageyecare.com',
-    mapUrl: 'https://maps.google.com/?q=Civil+Lines,+Prayagraj,+UP+211001',
+    email: 'info@msmemorialnetralaya.com',
+    mapUrl: 'https://maps.google.com/?q=Dildarnagar+Tarighat+Road,+Bangalapar,+Dildarnagar,+Ghazipur+232326',
     hours: [
-      { day_hi: 'सोमवार — शनिवार', day_en: 'Monday — Saturday', time: '9:00 AM – 5:00 PM' },
-      { day_hi: 'मंगलवार (निःशुल्क ओपीडी)', day_en: 'Tuesday (Free OPD)', time: '9:00 AM – 12:00 PM', highlight: true },
-      { day_hi: 'रविवार', day_en: 'Sunday', time_hi: 'बंद (केवल आपातकाल)', time_en: 'Closed (Emergency Only)' },
+      { day_hi: 'सोमवार — शनिवार', day_en: 'Monday — Saturday', time: '9:00 AM – 6:00 PM' },
+      { day_hi: 'मंगलवार (विशेष परामर्श)', day_en: 'Tuesday (Special OPD)', time: '9:00 AM – 2:00 PM', highlight: true },
+      { day_hi: 'रविवार', day_en: 'Sunday', time_hi: 'साप्ताहिक अवकाश (आपातकाल खुला)', time_en: 'Weekly Holiday (Emergency Open)' },
     ],
   };
 
@@ -330,8 +330,8 @@ export default function ContactPage({ params }: { params: { locale: string } }) 
           {/* Google Map Embed Placeholder */}
           <div className="mt-5 rounded-2xl overflow-hidden shadow-card border border-hospitalBorder">
             <iframe
-              title="Prayag Eye Care Location"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3602.3!2d81.8461!3d25.4358!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sCivil%20Lines%2C%20Prayagraj!5e0!3m2!1sen!2sin!4v1640000000000!5m2!1sen!2sin"
+              title="M S Memorial Netralaya Location"
+              src="https://maps.google.com/maps?q=M+S+Memorial+Netralaya+Station+Road+Dildarnagar+Ghazipur&t=&z=15&ie=UTF8&iwloc=&output=embed"
               width="100%"
               height="260"
               style={{ border: 0 }}

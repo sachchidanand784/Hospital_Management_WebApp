@@ -96,8 +96,22 @@ export default function DoctorsDirectoryPage({ params }: { params: { locale: str
         {filteredDoctors.map((doc) => (
           <div key={doc.id} className="surface-card p-6 rounded-2xl shadow-card hover:shadow-xl transition space-y-4 flex flex-col justify-between border border-hospitalBorder">
             <div className="space-y-3 text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-cyan-100 text-primary rounded-full flex items-center justify-center mx-auto border-2 border-primary/20 shadow">
-                <span className="text-xl font-extrabold">{doc.fullName.split(' ').map((n: any) => n[0]).join('')}</span>
+              <div className="relative w-24 h-24 mx-auto">
+                {doc.photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={doc.photoUrl}
+                    alt={doc.fullName}
+                    className="w-24 h-24 object-cover rounded-full border-2 border-primary shadow"
+                  />
+                ) : (
+                  <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-cyan-100 text-primary rounded-full flex items-center justify-center mx-auto border-2 border-primary/20 shadow">
+                    <span className="text-xl font-extrabold">{doc.fullName.split(' ').map((n: any) => n[0]).join('')}</span>
+                  </div>
+                )}
+                <span className="absolute bottom-0 right-1 bg-emerald-500 text-white p-1 rounded-full text-[10px] shadow">
+                  ✓
+                </span>
               </div>
 
               <div>

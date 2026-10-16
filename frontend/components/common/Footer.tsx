@@ -15,13 +15,13 @@ export const Footer: React.FC<FooterProps> = ({ locale, messages, hospital }) =>
     ? (locale === 'hi' ? (hospital.name_hi || hospital.name_en) : (hospital.name_en || hospital.name_hi)) 
     : messages.common.hospitalName;
 
-  const address = hospital?.address_en || '12/4 Civil Lines, Near MG Marg, Prayagraj, Uttar Pradesh 211001';
+  const address = hospital?.address_en || 'Dildarnagar Tarighat Road, Bangalapar, Dildarnagar, Ghazipur, Uttar Pradesh 232326';
   const openTime = hospital?.openTime || '09:00';
   const closeTime = hospital?.closeTime || '18:00';
   const closedDay = hospital?.closedDay || 'Sunday';
   const freeCheckupDay = hospital?.freeCheckupDay || 'Tuesday';
-  const phoneText = [hospital?.phone1, hospital?.phone2].filter(Boolean).join(' / ') || '+91 98765 43210';
-  const emailText = hospital?.email || 'info@prayageyecare.com';
+  const phoneText = [hospital?.phone1, hospital?.phone2].filter(Boolean).join(' / ') || '+91 80048 00688 / 80048 00699';
+  const emailText = hospital?.email || 'info@msmemorialnetralaya.com';
 
   return (
     <footer className="bg-primary-dark text-white pt-12 pb-8 border-t-4 border-accent">
@@ -29,19 +29,21 @@ export const Footer: React.FC<FooterProps> = ({ locale, messages, hospital }) =>
         {/* Column 1: Hospital Brand */}
         <div className="space-y-4">
           <div className="flex items-center space-x-2.5">
-            <div className="bg-accent text-white p-2 rounded-xl">
-              <Eye className="w-6 h-6" />
-            </div>
-            <span className="text-xl font-bold tracking-tight">{hospitalName}</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/logo.png"
+              alt={hospitalName}
+              className="h-10 w-auto object-contain bg-white/90 p-1 rounded-lg"
+            />
           </div>
           <p className="text-gray-300 text-xs leading-relaxed">
             {locale === 'hi'
-              ? 'प्रयागराज का प्रतिष्ठित नेत्र अस्पताल — अत्याधुनिक लेजर तकनीक, फेको मोतियाबिंद ऑपरेशन एवं डिजिटल टोकन सुविधा।'
-              : 'Prayagraj\'s trusted eye care hospital offering Phaco cataract surgery, laser vision correction, and digital token tracking.'}
+              ? 'एम एस मेमोरियल नेत्रालय — दिलदारनगर (गाजीपुर) का प्रमुख सुपर-स्पेशलिटी नेत्र संस्थान। अत्याधुनिक फेको मोतियाबिंद, रेटिना लेजर एवं डिजिटल टोकन प्रणाली।'
+              : 'M S Memorial Netralaya — Premier eye institute in Dildarnagar, Ghazipur equipped with advanced Phaco cataract surgery, vitreoretinal care, and digital token tracking.'}
           </p>
           <div className="flex items-center space-x-2 text-emerald-400 text-xs font-semibold">
             <ShieldCheck className="w-4 h-4" />
-            <span>NABH Accredited Standard Care</span>
+            <span>Certified Eye Care Centre</span>
           </div>
         </div>
 

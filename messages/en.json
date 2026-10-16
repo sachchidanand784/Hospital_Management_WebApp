@@ -1,7 +1,7 @@
 {
   "common": {
-    "hospitalName": "Prayag Eye Care & Laser Centre",
-    "tagline": "Complete Eye Care Under One Roof",
+    "hospitalName": "M S Memorial Netralaya",
+    "tagline": "Best Eye Care Hospital in Ghazipur — Modern Retina & Cataract Care",
     "openNow": "Open Now",
     "closed": "Closed Today",
     "emergency24x7": "24x7 Emergency Available",
@@ -43,8 +43,8 @@
     "dashboard": "Dashboard"
   },
   "home": {
-    "heroTitle": "Advanced Eye Surgery & Complete Vision Care",
-    "heroSubtitle": "Prayagraj's trusted eye hospital for Cataract, Retinal care, Vision correction, and Digital Token Consultation.",
+    "heroTitle": "M S Memorial Netralaya Hospital",
+    "heroSubtitle": "All modern ophthalmic equipment under one roof. Equipped with world-class, imported instruments and renowned specialists in Dildarnagar, Ghazipur.",
     "howItWorksTitle": "How Digital Token Booking Works",
     "step1Title": "1. Book Online",
     "step1Desc": "Select service, date, and preferred doctor or general consultation.",
