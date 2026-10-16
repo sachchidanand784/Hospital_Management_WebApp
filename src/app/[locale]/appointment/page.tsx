@@ -9,6 +9,7 @@ import { getPublicServices, getPublicDoctors } from '@/actions/public';
 import { sendEmailOtp, bookAppointment } from '@/actions/appointment';
 import { calculateETAWindow } from '@backend/engines/eta-engine';
 import { computeSlots } from '@backend/engines/availability-engine';
+import { formatTo12Hour, getActualBookingTime12 } from '@/lib/time';
 import {
   Calendar,
   Clock,
@@ -54,7 +55,7 @@ export default function AppointmentPage({ params }: { params: { locale: string }
   // Initialize with today's date in YYYY-MM-DD format
   const getTodayDate = () => new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDate());
-  const [selectedSlot, setSelectedSlot] = useState<string>('09:20');
+  const [selectedSlot, setSelectedSlot] = useState<string>('09:20 AM');
   
   // Patient details
   const [patientName, setPatientName] = useState<string>('');
@@ -115,7 +116,7 @@ export default function AppointmentPage({ params }: { params: { locale: string }
         doctorId: selectedDoctor,
         doctorPreference,
         date: selectedDate,
-        slotStart: selectedSlot,
+        slotStart: selectedSlot ? formatTo12Hour(selectedSlot) : getActualBookingTime12(),
         patientName,
         patientAge,
         patientGender,
@@ -294,22 +295,27 @@ export default function AppointmentPage({ params }: { params: { locale: string }
             <div>
               <label className="text-xs font-bold text-primary-dark block mb-2">{messages.booking.step5}:</label>
               <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
-                {availableSlots.map((slot) => (
-                  <button
-                    key={slot.slotStart}
-                    disabled={!slot.available}
-                    onClick={() => setSelectedSlot(slot.slotStart)}
-                    className={`p-2.5 rounded-xl text-xs font-bold border transition ${
-                      selectedSlot === slot.slotStart
-                        ? 'bg-primary text-white border-primary'
-                        : slot.available
-                        ? 'bg-white hover:bg-gray-50 border-gray-200 text-hospitalText'
-                        : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                    }`}
-                  >
-                    {slot.slotStart} - {slot.slotEnd}
-                  </button>
-                ))}
+                {availableSlots.map((slot) => {
+                  const start12 = formatTo12Hour(slot.slotStart);
+                  const end12 = formatTo12Hour(slot.slotEnd);
+                  const isSelected = selectedSlot === start12 || selectedSlot === slot.slotStart;
+                  return (
+                    <button
+                      key={slot.slotStart}
+                      disabled={!slot.available}
+                      onClick={() => setSelectedSlot(start12)}
+                      className={`p-2.5 rounded-xl text-xs font-bold border transition ${
+                        isSelected
+                          ? 'bg-primary text-white border-primary'
+                          : slot.available
+                          ? 'bg-white hover:bg-gray-50 border-gray-200 text-hospitalText'
+                          : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                      }`}
+                    >
+                      {start12} - {end12}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -485,7 +491,7 @@ export default function AppointmentPage({ params }: { params: { locale: string }
             <div className="space-y-1">
               <span className="text-xs font-semibold text-mutedText uppercase">{messages.token.yourToken}</span>
               <div className="text-5xl font-extrabold text-primary font-mono tracking-wider">{allocatedToken}</div>
-              <span className="text-xs text-primary-dark font-bold block">{selectedDate} ({selectedSlot})</span>
+              <span className="text-xs text-primary-dark font-bold block">{selectedDate} ({formatTo12Hour(selectedSlot)})</span>
             </div>
 
             <div className="bg-white p-3 rounded-xl border border-gray-200 text-xs text-left space-y-1">
@@ -497,7 +503,7 @@ export default function AppointmentPage({ params }: { params: { locale: string }
             {/* ETA Window */}
             {etaResult && (
               <div className="bg-blue-50 p-3 rounded-xl text-xs text-blue-900 border border-blue-200 text-left space-y-1">
-                <span className="font-bold block">{messages.token.etaWindow}: {etaResult.windowStart} - {etaResult.windowEnd}</span>
+                <span className="font-bold block">{messages.token.etaWindow}: {formatTo12Hour(etaResult.windowStart)} - {formatTo12Hour(etaResult.windowEnd)}</span>
                 <p className="text-[11px] text-blue-700 leading-snug">{messages.token.etaDisclaimer}</p>
               </div>
             )}
@@ -512,14 +518,14 @@ export default function AppointmentPage({ params }: { params: { locale: string }
           {/* Download & Share Actions */}
           <div className="flex flex-wrap justify-center gap-3 pt-2">
             <a 
-              href={`data:text/plain;charset=utf-8,${encodeURIComponent(`Token: ${allocatedToken}\nAppointment ID: ${appointmentCode}\nPatient: ${patientName}\nDate: ${selectedDate}\nTime: ${selectedSlot}`)}`} 
+              href={`data:text/plain;charset=utf-8,${encodeURIComponent(`Token: ${allocatedToken}\nAppointment ID: ${appointmentCode}\nPatient: ${patientName}\nDate: ${selectedDate}\nTime: ${formatTo12Hour(selectedSlot)}`)}`} 
               download={`token-${allocatedToken}.txt`}
               className="bg-primary text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center shadow hover:bg-primary-dark"
             >
               <Download className="w-4 h-4 mr-1.5" /> {messages.booking.downloadPdf}
             </a>
             <a 
-              href={`https://wa.me/?text=${encodeURIComponent(`Hi ${patientName}, your appointment at M S Memorial Netralaya is confirmed. Token: ${allocatedToken}. Time: ${selectedDate} ${selectedSlot}.`)}`}
+              href={`https://wa.me/?text=${encodeURIComponent(`Hi ${patientName}, your appointment at M S Memorial Netralaya is confirmed. Token: ${allocatedToken}. Time: ${selectedDate} ${formatTo12Hour(selectedSlot)}.`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center shadow hover:bg-emerald-700"

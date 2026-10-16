@@ -16,6 +16,7 @@ import { getEmergencyRequests, updateEmergencyStatus } from '@/actions/emergency
 import { getHospitalSettings, updateHospitalSettings } from '@/actions/hospital';
 import { getOwnerDashboardData } from '@/actions/dashboard';
 import { getAppointments } from '@/actions/appointment';
+import { formatTo12Hour } from '@/lib/time';
 
 type TabType = 'OVERVIEW' | 'DOCTORS' | 'STAFF' | 'SERVICES' | 'APPOINTMENTS' | 'EMERGENCY' | 'HOSPITAL' | 'REPORTS';
 
@@ -80,7 +81,7 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
         service: a.service?.name_en || 'Eye Checkup',
         status: a.status || 'BOOKED',
         date: new Date(a.date).toLocaleDateString(),
-        time: a.slotStart || '09:00 AM',
+        time: formatTo12Hour(a.slotStart || a.createdAt),
         raw: a
       })));
     }
@@ -302,9 +303,9 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
       title = 'Patient Flow & Wait Time Analysis Report';
       headersHtml = `<th>Time Window</th><th>OPD Shift</th><th>Patients Attended</th><th>Average Consult</th><th>Avg Lounge Wait</th><th>On-Time Compliance</th>`;
       rowsHtml = `
-        <tr><td>09:00 - 12:00</td><td>Morning OPD (Peak Rush)</td><td>${Math.round(appointments.length * 0.55)}</td><td>14 mins</td><td>16 mins</td><td>96.2%</td></tr>
-        <tr><td>12:00 - 15:00</td><td>Afternoon OPD Session</td><td>${Math.round(appointments.length * 0.30)}</td><td>15 mins</td><td>12 mins</td><td>98.1%</td></tr>
-        <tr><td>15:00 - 18:00</td><td>Evening Follow-ups</td><td>${Math.round(appointments.length * 0.15)}</td><td>12 mins</td><td>8 mins</td><td>99.0%</td></tr>
+        <tr><td>09:00 AM - 12:00 PM</td><td>Morning OPD (Peak Rush)</td><td>${Math.round(appointments.length * 0.55)}</td><td>14 mins</td><td>16 mins</td><td>96.2%</td></tr>
+        <tr><td>12:00 PM - 03:00 PM</td><td>Afternoon OPD Session</td><td>${Math.round(appointments.length * 0.30)}</td><td>15 mins</td><td>12 mins</td><td>98.1%</td></tr>
+        <tr><td>03:00 PM - 06:00 PM</td><td>Evening Follow-ups</td><td>${Math.round(appointments.length * 0.15)}</td><td>12 mins</td><td>8 mins</td><td>99.0%</td></tr>
       `;
     } else if (reportId === 'no_show') {
       title = 'Patient Turnout & Cancellation Report';
@@ -405,9 +406,9 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
       title = 'Wait Time Analysis & Queue Flow';
       headersHtml = `<th>Time Window</th><th>Shift Name</th><th>Patients</th><th>Avg Consult</th><th>Avg Wait</th><th>On-Time Rate</th>`;
       rowsHtml = `
-        <tr><td>09:00 - 12:00</td><td>Morning OPD (Peak Hours)</td><td>${Math.round(appointments.length * 0.55)}</td><td>14 min</td><td>16 min</td><td>96.2%</td></tr>
-        <tr><td>12:00 - 15:00</td><td>Afternoon Session</td><td>${Math.round(appointments.length * 0.30)}</td><td>15 min</td><td>12 min</td><td>98.1%</td></tr>
-        <tr><td>15:00 - 18:00</td><td>Evening Follow-ups</td><td>${Math.round(appointments.length * 0.15)}</td><td>12 min</td><td>8 min</td><td>99.0%</td></tr>
+        <tr><td>09:00 AM - 12:00 PM</td><td>Morning OPD (Peak Hours)</td><td>${Math.round(appointments.length * 0.55)}</td><td>14 min</td><td>16 min</td><td>96.2%</td></tr>
+        <tr><td>12:00 PM - 03:00 PM</td><td>Afternoon Session</td><td>${Math.round(appointments.length * 0.30)}</td><td>15 min</td><td>12 min</td><td>98.1%</td></tr>
+        <tr><td>03:00 PM - 06:00 PM</td><td>Evening Follow-ups</td><td>${Math.round(appointments.length * 0.15)}</td><td>12 min</td><td>8 min</td><td>99.0%</td></tr>
       `;
     } else if (reportId === 'no_show') {
       title = 'No-Show & Patient Turnout Report';
@@ -1276,7 +1277,7 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
                   </p>
                   <div className="pt-1 flex flex-wrap gap-1.5 text-[10px]">
                     <span className="bg-amber-50 text-amber-800 font-bold px-2 py-0.5 rounded">
-                      Peak: 09:00 - 12:00
+                      Peak: 09:00 AM - 12:00 PM
                     </span>
                     <span className="bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded">
                       96.2% On-Time SLA
@@ -1646,7 +1647,7 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
                           </thead>
                           <tbody>
                             <tr className="border-b border-gray-100 hover:bg-gray-50">
-                              <td className="p-2.5 font-mono font-bold text-primary">09:00 - 12:00</td>
+                              <td className="p-2.5 font-mono font-bold text-primary">09:00 AM - 12:00 PM</td>
                               <td className="p-2.5">Morning OPD Session (Peak Footfall)</td>
                               <td className="p-2.5 text-center font-extrabold">{Math.round(appointments.length * 0.55)}</td>
                               <td className="p-2.5 text-center">14 mins</td>
@@ -1654,7 +1655,7 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
                               <td className="p-2.5 text-center text-emerald-700 font-bold">96.2%</td>
                             </tr>
                             <tr className="border-b border-gray-100 hover:bg-gray-50">
-                              <td className="p-2.5 font-mono font-bold text-primary">12:00 - 15:00</td>
+                              <td className="p-2.5 font-mono font-bold text-primary">12:00 PM - 03:00 PM</td>
                               <td className="p-2.5">Afternoon Consultations</td>
                               <td className="p-2.5 text-center font-extrabold">{Math.round(appointments.length * 0.30)}</td>
                               <td className="p-2.5 text-center">15 mins</td>
@@ -1662,7 +1663,7 @@ export default function OwnerDashboardPage({ params }: { params: { locale: strin
                               <td className="p-2.5 text-center text-emerald-700 font-bold">98.1%</td>
                             </tr>
                             <tr className="border-b border-gray-100 hover:bg-gray-50">
-                              <td className="p-2.5 font-mono font-bold text-primary">15:00 - 18:00</td>
+                              <td className="p-2.5 font-mono font-bold text-primary">03:00 PM - 06:00 PM</td>
                               <td className="p-2.5">Evening Vision Reviews & Follow-ups</td>
                               <td className="p-2.5 text-center font-extrabold">{Math.round(appointments.length * 0.15)}</td>
                               <td className="p-2.5 text-center">12 mins</td>

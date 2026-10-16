@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { allocateToken } from '@backend/engines/token-engine';
 import { calculateETAWindow } from '@backend/engines/eta-engine';
+import { formatTo12Hour, getActualBookingTime12 } from '@/lib/time';
 
 import nodemailer from 'nodemailer';
 
@@ -148,7 +149,7 @@ export async function bookAppointment(data: {
           patientName: patient.name,
           doctorName: recentDuplicate.doctor?.fullName || 'General OPD Doctor',
           date: data.date,
-          slotStart: data.slotStart,
+          slotStart: formatTo12Hour(recentDuplicate.slotStart),
         }
       };
     }
@@ -172,14 +173,21 @@ export async function bookAppointment(data: {
     const randomSuffix = Math.floor(100000 + Math.random() * 900000);
     const appointmentCode = `MSM-${appointmentDate.getFullYear()}-${randomSuffix}`;
 
-    // 5. Calculate Smart ETA
+    // 5. Calculate actual booking time in 12-hour AM/PM format (Asia/Kolkata IST)
+    const actualBookingTime = getActualBookingTime12();
+    // Use actual booking time if slot is default/empty, or convert selected slot to 12-hour AM/PM
+    const bookingTime12 = data.slotStart && !['09:00', '09:20', '10:00'].includes(data.slotStart)
+      ? formatTo12Hour(data.slotStart)
+      : actualBookingTime;
+
+    // 6. Calculate Smart ETA
     const eta = calculateETAWindow({
       patientsAhead: existingCount,
       avgConsultMin: 15,
       currentTime: new Date(),
     });
 
-    // 6. Save actual Appointment in database
+    // 7. Save actual Appointment in database
     const appointment = await prisma.appointment.create({
       data: {
         appointmentCode,
@@ -189,8 +197,8 @@ export async function bookAppointment(data: {
         doctorId: assignedDoctorId,
         type: data.doctorPreference || 'SPECIFIC',
         date: appointmentDate,
-        slotStart: data.slotStart || '09:00',
-        slotEnd: '17:00',
+        slotStart: bookingTime12,
+        slotEnd: '05:00 PM',
         tokenSeq: nextSeq,
         tokenLabel: tokenLabel,
         status: 'BOOKED',
@@ -215,7 +223,7 @@ export async function bookAppointment(data: {
         patientName: patient.name,
         doctorName: appointment.doctor?.fullName || 'General OPD Doctor',
         date: data.date,
-        slotStart: data.slotStart,
+        slotStart: appointment.slotStart,
       }
     };
   } catch (error) {

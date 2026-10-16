@@ -5,6 +5,7 @@ import en from '@messages/en.json';
 import hi from '@messages/hi.json';
 import { Clock, Search, CheckCircle, Download, Share2, QrCode, AlertCircle } from 'lucide-react';
 import { getAppointmentByCodeOrMobile } from '@/actions/appointment';
+import { formatTo12Hour } from '@/lib/time';
 
 export default function TrackPage({ params }: { params: { locale: string } }) {
   const locale = params.locale === 'en' ? 'en' : 'hi';
@@ -89,7 +90,7 @@ export default function TrackPage({ params }: { params: { locale: string } }) {
               {appointmentData.doctor?.fullName || 'General Eye Specialist'} ({appointmentData.service?.name_en || 'Eye Checkup'})
             </span>
             <span className="text-[11px] text-mutedText block font-mono">
-              Date: {new Date(appointmentData.date).toLocaleDateString()} | Time: {appointmentData.slotStart || '09:00 AM'}
+              Date: {new Date(appointmentData.date).toLocaleDateString()} | Time: {formatTo12Hour(appointmentData.slotStart || appointmentData.createdAt)}
             </span>
           </div>
 

@@ -29,6 +29,7 @@ import {
 import { getPublicServices, getPublicDoctors } from '@/actions/public';
 import { getLiveQueueBoardSummary } from '@/actions/appointment';
 import { getHospitalSettings } from '@/actions/hospital';
+import { formatTo12Hour } from '@/lib/time';
 
 export default function HomePage({ params }: { params: { locale: string } }) {
   const locale = params.locale === 'en' ? 'en' : 'hi';
@@ -222,10 +223,10 @@ export default function HomePage({ params }: { params: { locale: string } }) {
               <span className={`w-2 h-2 rounded-full ${isOpenNow ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`}></span>
               <span>
                 {isOpenNow
-                  ? `${locale === 'hi' ? 'अभी खुला है' : 'Open Now'} (${hospital.openTime} - ${hospital.closeTime})`
+                  ? `${locale === 'hi' ? 'अभी खुला है' : 'Open Now'} (${formatTo12Hour(hospital.openTime)} - ${formatTo12Hour(hospital.closeTime)})`
                   : isClosedToday
                     ? `${locale === 'hi' ? 'आज अस्पताल बंद है' : 'Hospital Closed Today'} (${getDayLabel(hospital.closedDay)} अवकाश)`
-                    : `${locale === 'hi' ? 'अभी बंद है' : 'Closed Now'} (${hospital.openTime} बजे खुलेगा)`
+                    : `${locale === 'hi' ? 'अभी बंद है' : 'Closed Now'} (${formatTo12Hour(hospital.openTime)} बजे खुलेगा)`
                 } {hospital.emergency24x7 ? `• ${locale === 'hi' ? '24x7 आपातकालीन सेवा' : '24x7 Emergency'}` : ''}
               </span>
             </div>
@@ -246,8 +247,8 @@ export default function HomePage({ params }: { params: { locale: string } }) {
                 <Sparkles className="w-5 h-5 text-amber-300 shrink-0 animate-bounce" />
                 <span>
                   {locale === 'hi'
-                    ? `विशेष सूचना: हर ${getDayLabel(hospital.freeCheckupDay || 'Tuesday')} को अस्पताल में विशेष नेत्र परामर्श उपलब्ध है! (समय: सुबह ${hospital.openTime} - शाम ${hospital.closeTime})`
-                    : `Special Notice: Free/Special OPD Eye Checkup available every ${hospital.freeCheckupDay || 'Tuesday'}! (Timings: ${hospital.openTime} - ${hospital.closeTime})`}
+                    ? `विशेष सूचना: हर ${getDayLabel(hospital.freeCheckupDay || 'Tuesday')} को अस्पताल में विशेष नेत्र परामर्श उपलब्ध है! (समय: ${formatTo12Hour(hospital.openTime)} - ${formatTo12Hour(hospital.closeTime)})`
+                    : `Special Notice: Free/Special OPD Eye Checkup available every ${hospital.freeCheckupDay || 'Tuesday'}! (Timings: ${formatTo12Hour(hospital.openTime)} - ${formatTo12Hour(hospital.closeTime)})`}
                 </span>
               </div>
             )}

@@ -8,6 +8,7 @@ import {
   Home, Info, Stethoscope, Activity, Users, Glasses, Phone, Lock,
 } from 'lucide-react';
 import { A11yControls } from '../a11y/A11yControls';
+import { formatTo12Hour } from '@/lib/time';
 
 interface NavbarProps {
   locale: 'hi' | 'en';
@@ -70,7 +71,7 @@ export const Navbar: React.FC<NavbarProps> = ({ locale, messages, hospital }) =>
           <span className={`inline-flex items-center font-medium px-2 py-0.5 rounded-full text-[11px] ${
             isTimingOpen ? 'bg-emerald-600' : 'bg-red-600'
           }`}>
-            ● {isTimingOpen ? messages.common.openNow : (locale === 'hi' ? `अभी बंद है (${hospital?.openTime || '09:00'} बजे खुलेगा)` : `Closed Now (Opens at ${hospital?.openTime || '09:00 AM'})`)}
+            ● {isTimingOpen ? messages.common.openNow : (locale === 'hi' ? `अभी बंद है (${formatTo12Hour(hospital?.openTime || '09:00')} बजे खुलेगा)` : `Closed Now (Opens at ${formatTo12Hour(hospital?.openTime || '09:00 AM')})`)}
           </span>
           {isWeeklyHoliday && (
             <span className="bg-amber-500/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded hidden sm:inline">

@@ -26,6 +26,7 @@ import {
   Stethoscope
 } from 'lucide-react';
 import { getAppointments, updateAppointmentStatus } from '@/actions/appointment';
+import { formatTo12Hour } from '@/lib/time';
 
 export default function DoctorDashboardPage({ params }: { params: { locale: string } }) {
   const locale = params.locale === 'en' ? 'en' : 'hi';
@@ -97,7 +98,7 @@ export default function DoctorDashboardPage({ params }: { params: { locale: stri
           service: a.service?.name_en || 'General Eye Examination',
           problem: a.problem?.problem_en || a.problem?.problem_hi || a.notes || 'Eye Checkup & Vision Consultation',
           status: a.status || 'WAITING',
-          slotStart: a.slotStart || '09:00 AM',
+          slotStart: formatTo12Hour(a.slotStart || a.createdAt),
           refraction: a.examination
             ? `Distance: R ${a.examination.distVisionRight || '6/6'} / L ${a.examination.distVisionLeft || '6/6'} | IOP: R ${a.examination.iopRight || '14'} / L ${a.examination.iopLeft || '14'} mmHg`
             : `Right: SPH -1.00 / CYL -0.50 (6/6) | Left: SPH -0.75 (6/6) | IOP: 14 mmHg (Normal)`,

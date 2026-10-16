@@ -17,6 +17,7 @@ import {
   Clock
 } from 'lucide-react';
 import { getAppointments, updateAppointmentStatus, bookAppointment } from '@/actions/appointment';
+import { getActualBookingTime12, formatTo12Hour } from '@/lib/time';
 
 export default function ReceptionDashboardPage({ params }: { params: { locale: string } }) {
   const locale = params.locale === 'en' ? 'en' : 'hi';
@@ -73,7 +74,7 @@ export default function ReceptionDashboardPage({ params }: { params: { locale: s
       doctorId: '',
       doctorPreference: 'GENERAL',
       date: new Date().toISOString().split('T')[0],
-      slotStart: '10:00',
+      slotStart: getActualBookingTime12(),
       patientName: walkinName,
       patientAge: '30',
       patientGender: 'Male',

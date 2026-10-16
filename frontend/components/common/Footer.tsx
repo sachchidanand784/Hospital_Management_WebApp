@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Eye, MapPin, Phone, Mail, Clock, ShieldCheck } from 'lucide-react';
+import { formatTo12Hour } from '@/lib/time';
 
 interface FooterProps {
   locale: 'hi' | 'en';
@@ -71,8 +72,8 @@ export const Footer: React.FC<FooterProps> = ({ locale, messages, hospital }) =>
               <Clock className="w-4 h-4 text-cyan-400 shrink-0" />
               <span>
                 {locale === 'hi' 
-                  ? `ओपीडी समय: सुबह ${openTime} - शाम ${closeTime}` 
-                  : `OPD Hours: ${openTime} - ${closeTime}`}
+                  ? `ओपीडी समय: ${formatTo12Hour(openTime)} - ${formatTo12Hour(closeTime)}` 
+                  : `OPD Hours: ${formatTo12Hour(openTime)} - ${formatTo12Hour(closeTime)}`}
               </span>
             </li>
             {closedDay && closedDay !== 'None' && (
