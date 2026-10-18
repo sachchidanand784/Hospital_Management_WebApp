@@ -358,26 +358,26 @@ export default function HomePage({ params }: { params: { locale: string } }) {
           src="/images/hospital-building.jpg"
           alt=""
           aria-hidden="true"
-          className="w-full h-full object-cover object-center opacity-[0.12] filter grayscale contrast-125"
+          className="w-full h-full object-cover object-center opacity-[0.25] filter grayscale contrast-125"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#F5F9FC]/60 to-[#F5F9FC]/80" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#F5F9FC]/40 to-[#F5F9FC]/70" />
       </div>
 
       <div className="relative z-10 space-y-12">
         {/* 1. HERO BANNER WITH DIRECT HOSPITAL BUILDING COVER BACKGROUND */}
         <section className="relative bg-[#071E3D] text-white pt-10 pb-16 px-4 overflow-hidden">
-          {/* Hospital Building Landing Cover Background with 3.5x Opacity (Clear Watermark Effect) */}
+          {/* Hospital Building Landing Cover Background - High Visibility Watermark */}
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/hospital-building.jpg"
               alt="M S Memorial Netralaya Building"
-              className="w-full h-full object-cover object-center scale-105 opacity-[0.60] filter contrast-125 brightness-95"
+              className="w-full h-full object-cover object-center scale-105 opacity-90 filter contrast-110 brightness-90"
             />
-            {/* Balanced Medical Gradient Overlay ensuring image is visibly seen like a watermark while text is 100% readable */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#071E3D]/85 via-[#0B2545]/75 to-[#071E3D]/85" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(19,168,158,0.3),transparent_60%)]" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0B2545]/90 via-transparent to-black/30" />
+            {/* Soft translucent medical tint so the hospital building is clearly visible while text retains high contrast */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#071E3D]/70 via-[#0B2545]/45 to-[#071E3D]/70" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(19,168,158,0.25),transparent_60%)]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#071E3D]/80 via-transparent to-black/25" />
           </div>
         <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
