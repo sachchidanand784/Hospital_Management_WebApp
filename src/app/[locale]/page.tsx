@@ -358,26 +358,26 @@ export default function HomePage({ params }: { params: { locale: string } }) {
           src="/images/hospital-building.jpg"
           alt=""
           aria-hidden="true"
-          className="w-full h-full object-cover object-center opacity-[0.035] filter grayscale contrast-125"
+          className="w-full h-full object-cover object-center opacity-[0.12] filter grayscale contrast-125"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#F5F9FC]/70 to-[#F5F9FC]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#F5F9FC]/60 to-[#F5F9FC]/80" />
       </div>
 
       <div className="relative z-10 space-y-12">
         {/* 1. HERO BANNER WITH DIRECT HOSPITAL BUILDING COVER BACKGROUND */}
         <section className="relative bg-[#071E3D] text-white pt-10 pb-16 px-4 overflow-hidden">
-          {/* Hospital Building Landing Cover Background with Low Opacity */}
+          {/* Hospital Building Landing Cover Background with 3.5x Opacity (Clear Watermark Effect) */}
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/hospital-building.jpg"
               alt="M S Memorial Netralaya Building"
-              className="w-full h-full object-cover object-center scale-105 opacity-20 filter contrast-125 brightness-110"
+              className="w-full h-full object-cover object-center scale-105 opacity-[0.60] filter contrast-125 brightness-95"
             />
-            {/* Multi-layered Deep Medical Gradient Overlay ensuring 100% text readability */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#0B2545]/95 via-[#0A5EB0]/85 to-[#071E3D]/95 mix-blend-multiply" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(19,168,158,0.25),transparent_55%)]" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0B2545]/90 via-transparent to-black/20" />
+            {/* Balanced Medical Gradient Overlay ensuring image is visibly seen like a watermark while text is 100% readable */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#071E3D]/85 via-[#0B2545]/75 to-[#071E3D]/85" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(19,168,158,0.3),transparent_60%)]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0B2545]/90 via-transparent to-black/30" />
           </div>
         <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
@@ -394,11 +394,11 @@ export default function HomePage({ params }: { params: { locale: string } }) {
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight drop-shadow-md">
               {locale === 'hi' ? (hospital.name_hi || messages.home.heroTitle) : (hospital.name_en || messages.home.heroTitle)}
             </h1>
 
-            <p className="text-sm sm:text-base text-cyan-100 font-normal leading-relaxed">
+            <p className="text-sm sm:text-base text-cyan-100 font-normal leading-relaxed drop-shadow">
               {locale === 'hi'
                 ? 'दिलदारनगर (गाजीपुर) का विश्वसनीय नेत्र अस्पताल — बिना टांके का फेको मोतियाबिंद ऑपरेशन, विट्रियो-रेटिना लेजर व डिजिटल टोकन परामर्श।'
                 : messages.home.heroSubtitle}
