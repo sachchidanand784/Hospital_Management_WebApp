@@ -34,6 +34,7 @@ import { getPublicServices, getPublicDoctors } from '@/actions/public';
 import { getLiveQueueBoardSummary } from '@/actions/appointment';
 import { getHospitalSettings } from '@/actions/hospital';
 import { formatTo12Hour } from '@/lib/time';
+import { ScrollZoomOut } from '@frontend/components/common/ScrollZoom';
 
 export default function HomePage({ params }: { params: { locale: string } }) {
   const locale = params.locale === 'en' ? 'en' : 'hi';
@@ -349,10 +350,35 @@ export default function HomePage({ params }: { params: { locale: string } }) {
   ];
 
   return (
-    <div className="space-y-12 pb-16">
-      {/* 1. HERO BANNER */}
-      <section className="relative bg-gradient-to-br from-primary-dark via-primary to-blue-900 text-white pt-10 pb-16 px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(19,168,158,0.2),transparent_50%)]"></div>
+    <div className="relative min-h-screen space-y-12 pb-16 overflow-hidden">
+      {/* 0. AMBIENT HOSPITAL ARCHITECTURAL BACKGROUND WATERMARK FOR LANDING PAGE */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/hospital-building.jpg"
+          alt=""
+          aria-hidden="true"
+          className="w-full h-full object-cover object-center opacity-[0.035] filter grayscale contrast-125"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#F5F9FC]/70 to-[#F5F9FC]" />
+      </div>
+
+      <div className="relative z-10 space-y-12">
+        {/* 1. HERO BANNER WITH DIRECT HOSPITAL BUILDING COVER BACKGROUND */}
+        <section className="relative bg-[#071E3D] text-white pt-10 pb-16 px-4 overflow-hidden">
+          {/* Hospital Building Landing Cover Background with Low Opacity */}
+          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/hospital-building.jpg"
+              alt="M S Memorial Netralaya Building"
+              className="w-full h-full object-cover object-center scale-105 opacity-20 filter contrast-125 brightness-110"
+            />
+            {/* Multi-layered Deep Medical Gradient Overlay ensuring 100% text readability */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0B2545]/95 via-[#0A5EB0]/85 to-[#071E3D]/95 mix-blend-multiply" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(19,168,158,0.25),transparent_55%)]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0B2545]/90 via-transparent to-black/20" />
+          </div>
         <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           <div className="lg:col-span-7 space-y-5">
@@ -480,7 +506,7 @@ export default function HomePage({ params }: { params: { locale: string } }) {
       </section>
 
       {/* 2. TRUST STATS & HIGHLIGHTS BAR WITH FLOATING MICRO-ANIMATIONS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 relative z-20">
+      <ScrollZoomOut amount={0.2} scaleFrom={1.06} duration={0.7} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 relative z-20">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="surface-card p-4 rounded-xl shadow-card hover:shadow-xl border border-hospitalBorder flex items-center space-x-3 animate-float-slow hover:-translate-y-1.5 transition-all duration-300">
             <div className="w-10 h-10 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
@@ -522,10 +548,10 @@ export default function HomePage({ params }: { params: { locale: string } }) {
             </div>
           </div>
         </div>
-      </section>
+      </ScrollZoomOut>
 
       {/* 3. ABOUT HOSPITAL & FOUNDER SHOWCASE */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <ScrollZoomOut amount={0.15} scaleFrom={1.06} duration={0.7} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="surface-card rounded-2xl shadow-card border border-hospitalBorder p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           <div className="lg:col-span-7 space-y-4">
@@ -599,10 +625,10 @@ export default function HomePage({ params }: { params: { locale: string } }) {
           </div>
 
         </div>
-      </section>
+      </ScrollZoomOut>
 
       {/* 4. HOSPITAL EYE SERVICES (2X PASSPORT PHOTOS & AUTO-FLOATING TRACK) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <ScrollZoomOut amount={0.12} scaleFrom={1.05} duration={0.7} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
           <div>
             <div className="inline-flex items-center space-x-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold mb-2">
@@ -744,10 +770,10 @@ export default function HomePage({ params }: { params: { locale: string } }) {
             })}
           </div>
         </div>
-      </section>
+      </ScrollZoomOut>
 
       {/* 5. COMMON EYE DISEASES & SYMPTOM GUIDE (WITH REAL CLINICAL PHOTOS) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <ScrollZoomOut amount={0.12} scaleFrom={1.05} duration={0.7} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
           <div>
             <div className="inline-flex items-center space-x-1.5 bg-rose-500/10 text-rose-600 px-3 py-1 rounded-full text-xs font-bold mb-2">
@@ -851,10 +877,10 @@ export default function HomePage({ params }: { params: { locale: string } }) {
             </div>
           ))}
         </div>
-      </section>
+      </ScrollZoomOut>
 
       {/* 6. HOW DIGITAL TOKEN BOOKING WORKS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <ScrollZoomOut amount={0.15} scaleFrom={1.06} duration={0.7} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <h2 className="text-2xl sm:text-3xl font-bold text-primary-dark">{messages.home.howItWorksTitle}</h2>
           <p className="text-xs sm:text-sm text-mutedText">
@@ -889,10 +915,10 @@ export default function HomePage({ params }: { params: { locale: string } }) {
             <p className="text-xs text-mutedText leading-relaxed">{messages.home.step4Desc}</p>
           </div>
         </div>
-      </section>
+      </ScrollZoomOut>
 
-      {/* 6. VERIFIED SPECIALISTS DIRECTORY */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      {/* 7. VERIFIED SPECIALISTS DIRECTORY */}
+      <ScrollZoomOut amount={0.12} scaleFrom={1.05} duration={0.7} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="flex justify-between items-end">
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold text-primary-dark">
@@ -963,10 +989,10 @@ export default function HomePage({ params }: { params: { locale: string } }) {
             </div>
           ))}
         </div>
-      </section>
+      </ScrollZoomOut>
 
-      {/* 7. HOSPITAL PHOTO GALLERY SHOWCASE */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      {/* 8. HOSPITAL PHOTO GALLERY SHOWCASE */}
+      <ScrollZoomOut amount={0.12} scaleFrom={1.05} duration={0.7} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end">
           <div>
             <div className="inline-flex items-center space-x-1.5 bg-accent/10 text-accent px-3 py-1 rounded-full text-xs font-bold mb-2">
@@ -1030,10 +1056,10 @@ export default function HomePage({ params }: { params: { locale: string } }) {
             </div>
           ))}
         </div>
-      </section>
+      </ScrollZoomOut>
 
-      {/* 8. REAL PATIENT TESTIMONIALS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      {/* 9. REAL PATIENT TESTIMONIALS */}
+      <ScrollZoomOut amount={0.15} scaleFrom={1.06} duration={0.7} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <div className="inline-flex items-center space-x-1.5 bg-amber-500/10 text-amber-600 px-3 py-1 rounded-full text-xs font-bold">
             <Star className="w-3.5 h-3.5 fill-current" />
@@ -1070,7 +1096,8 @@ export default function HomePage({ params }: { params: { locale: string } }) {
             </div>
           ))}
         </div>
-      </section>
+      </ScrollZoomOut>
+      </div>
 
       {/* 9. AI CHAT FLOATING WIDGET (UNTOUCHED FUNCTIONALITY) */}
       <div className="fixed bottom-20 right-4 z-40">
