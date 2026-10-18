@@ -275,13 +275,31 @@ export async function getAppointments(filters?: { doctorId?: string; date?: stri
 export async function getAppointmentByCodeOrMobile(query: string) {
   try {
     const trimmed = query.trim();
+    if (!trimmed) {
+      return { success: false, error: 'Query is empty' };
+    }
+
+    // Build flexible search conditions to match token variants, appointment codes, and mobile numbers
+    const orConditions: any[] = [
+      { appointmentCode: { equals: trimmed, mode: 'insensitive' } },
+      { appointmentCode: { contains: trimmed, mode: 'insensitive' } },
+      { tokenLabel: { equals: trimmed, mode: 'insensitive' } },
+      { patient: { mobile: { contains: trimmed.replace(/\D/g, '') || trimmed } } }
+    ];
+
+    // If query matches token format e.g. "A-1", "A1", "1", "001", "a-001"
+    const tokenMatch = trimmed.match(/^([a-zA-Z]?)[-\s]?(\d+)$/);
+    if (tokenMatch) {
+      const prefix = (tokenMatch[1] || 'A').toUpperCase();
+      const num = parseInt(tokenMatch[2], 10);
+      const normalizedLabel = `${prefix}-${String(num).padStart(3, '0')}`;
+      orConditions.push({ tokenLabel: { equals: normalizedLabel, mode: 'insensitive' } });
+      orConditions.push({ tokenSeq: num });
+    }
+
     const appointment = await prisma.appointment.findFirst({
       where: {
-        OR: [
-          { appointmentCode: { equals: trimmed, mode: 'insensitive' } },
-          { tokenLabel: { equals: trimmed, mode: 'insensitive' } },
-          { patient: { mobile: trimmed } }
-        ]
+        OR: orConditions
       },
       include: {
         patient: true,
@@ -296,7 +314,121 @@ export async function getAppointmentByCodeOrMobile(query: string) {
       return { success: false, error: 'Appointment not found' };
     }
 
-    return { success: true, appointment };
+    // Real-Time Live Queue Calculation for this specific appointment
+    const appointmentDate = new Date(appointment.date);
+    const startOfDay = new Date(appointmentDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(appointmentDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const sameDayAppointments = await prisma.appointment.findMany({
+      where: {
+        date: { gte: startOfDay, lte: endOfDay },
+        ...(appointment.doctorId ? { doctorId: appointment.doctorId } : {}),
+      },
+      include: {
+        patient: true,
+        doctor: true,
+      },
+      orderBy: { tokenSeq: 'asc' }
+    });
+
+    // 1. Identify currently serving appointment in consultation
+    const inConsultation = sameDayAppointments.find(a => a.status === 'IN_CONSULTATION');
+
+    let currentlyServingToken = appointment.tokenLabel;
+    let currentlyServingDoctor = appointment.doctor?.fullName || 'Dr. Madhav Mukund';
+    let currentlyServingPatient = appointment.patient?.name || '';
+
+    if (inConsultation) {
+      currentlyServingToken = inConsultation.tokenLabel;
+      currentlyServingDoctor = inConsultation.doctor?.fullName || currentlyServingDoctor;
+      currentlyServingPatient = inConsultation.patient?.name || 'Patient';
+    } else {
+      const firstActive = sameDayAppointments.find(a => a.status !== 'COMPLETED' && a.status !== 'CANCELLED');
+      if (firstActive) {
+        currentlyServingToken = firstActive.tokenLabel;
+        currentlyServingDoctor = firstActive.doctor?.fullName || currentlyServingDoctor;
+        currentlyServingPatient = firstActive.patient?.name || 'Patient';
+      } else if (sameDayAppointments.length > 0) {
+        currentlyServingToken = 'Queue Completed';
+      }
+    }
+
+    // 2. Calculate real patients ahead
+    const isYourTurn = appointment.status === 'IN_CONSULTATION' || (currentlyServingToken === appointment.tokenLabel && appointment.status !== 'COMPLETED' && appointment.status !== 'CANCELLED');
+    const isCompleted = appointment.status === 'COMPLETED';
+    const isCancelled = appointment.status === 'CANCELLED';
+
+    let patientsAhead = 0;
+    if (!isYourTurn && !isCompleted && !isCancelled) {
+      const aheadList = sameDayAppointments.filter(a =>
+        a.id !== appointment.id &&
+        (a.tokenSeq ?? 0) < (appointment.tokenSeq ?? 0) &&
+        a.status !== 'COMPLETED' &&
+        a.status !== 'CANCELLED'
+      );
+      patientsAhead = aheadList.length;
+    }
+
+    const isNext = !isYourTurn && !isCompleted && !isCancelled && patientsAhead === 0;
+
+    // 3. Dynamic Room Assignment based on Doctor / Specialty
+    const docName = (appointment.doctor?.fullName || '').toLowerCase();
+    let opdRoom = 'Room 101 (Ground Floor - Phaco & Retina OPD)';
+    if (docName.includes('kshitij') || docName.includes('retina')) {
+      opdRoom = 'Room 102 (1st Floor - Vitreo-Retina & Laser Suite)';
+    } else if (docName.includes('priyanka') || docName.includes('pediatric')) {
+      opdRoom = 'Room 104 (1st Floor - Pediatric & Cornea OPD)';
+    } else if (docName.includes('arvind') || docName.includes('glaucoma')) {
+      opdRoom = 'Room 103 (Ground Floor - Glaucoma OPD)';
+    } else if (appointment.service?.name_en?.toLowerCase().includes('optometry')) {
+      opdRoom = 'Ground Floor (Chashma Ghar & Refraction Desk)';
+    }
+
+    // 4. Dynamic ETA Calculation
+    const now = new Date();
+    const estWaitMin = isYourTurn || isCompleted || isCancelled ? 0 : Math.max(5, patientsAhead * 12);
+    const windowStart = new Date(now.getTime() + Math.max(0, estWaitMin - 4) * 60 * 1000);
+    const windowEnd = new Date(now.getTime() + (estWaitMin + 8) * 60 * 1000);
+
+    const formatTime12 = (d: Date) => d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+    let etaWindow = '';
+    if (isYourTurn) {
+      etaWindow = 'In Consultation Now (परामर्श जारी)';
+    } else if (isCompleted) {
+      etaWindow = 'Completed (परामर्श पूर्ण)';
+    } else if (isCancelled) {
+      etaWindow = 'Cancelled (अपॉइंटमेंट रद्द)';
+    } else if (isNext) {
+      etaWindow = `Next 5-10 min (${formatTime12(now)} - ${formatTime12(new Date(now.getTime() + 10 * 60 * 1000))})`;
+    } else {
+      etaWindow = `${formatTime12(windowStart)} - ${formatTime12(windowEnd)} (~${estWaitMin} min)`;
+    }
+
+    const nowFormattedTime = formatTime12(now);
+
+    return {
+      success: true,
+      appointment,
+      liveQueue: {
+        queueActive: true,
+        currentlyServingToken,
+        currentlyServingDoctor,
+        currentlyServingPatient,
+        patientsAhead,
+        isYourTurn,
+        isNext,
+        isCompleted,
+        isCancelled,
+        opdRoom,
+        estWaitMin,
+        etaWindow,
+        totalToday: sameDayAppointments.length,
+        lastUpdatedTime: nowFormattedTime,
+      }
+    };
   } catch (error) {
     console.error('Error searching appointment:', error);
     return { success: false, error: 'Error searching appointment' };
