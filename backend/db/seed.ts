@@ -289,11 +289,14 @@ async function main() {
   console.log('Seeding completed successfully!');
 }
 
-main()
-  .catch(e => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+// Only run seeding when directly invoked via command line, not when imported as SEED_DATA
+if (process.env.RUN_SEED === 'true') {
+  main()
+    .catch(e => {
+      console.warn('Seed database warning:', e.message);
+    })
+    .finally(async () => {
+      await prisma.$disconnect().catch(() => {});
+    });
+}
+

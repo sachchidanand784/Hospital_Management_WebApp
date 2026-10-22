@@ -27,7 +27,12 @@ import {
   ChevronLeft,
   Play,
   Pause,
-  MoveHorizontal
+  MoveHorizontal,
+  BadgeCheck,
+  Stethoscope,
+  Check,
+  Zap,
+  Layers
 } from 'lucide-react';
 
 import { getPublicServices, getPublicDoctors } from '@/actions/public';
@@ -349,6 +354,116 @@ export default function HomePage({ params }: { params: { locale: string } }) {
     },
   ];
 
+  // Official Core Specialties (Authentic icons from msmemorialnetralaya.com: c1.png, c2.png, c3.png, c4.png)
+  const coreSpecialties = [
+    {
+      id: 'cataract',
+      name_en: 'Cataract & Refractive Care',
+      name_hi: 'मोतियाबिंद एवं दृष्टि सुधार (फेको)',
+      image: '/images/showcase/c1.png',
+      desc_en: 'Clear vision, better life. Comprehensive cataract & refractive care. Expert surgeons. State-of-the-art technology.',
+      desc_hi: 'स्पष्ट दृष्टि, बेहतर जीवन। सम्पूर्ण मोतियाबिंद एवं रिफ्रैक्टिव केयर। आधुनिक फेको मशीन व विश्वस्तरीय फोल्डेबल लेंस।',
+      features_en: ['Micro-Incision Phaco Surgery', 'Zero Stitch & Painless', 'Foldable IOL Implantation'],
+      features_hi: ['माइक्रो-इंसीजन फेको सर्जरी', 'बिना सुई, बिना टांके का ऑपरेशन', 'आधुनिक फोल्डेबल लेंस'],
+      serviceId: 'srv-cataract',
+      badge_en: 'Advanced Phaco',
+      badge_hi: 'फेको सेंटर',
+      accentColor: 'border-teal-200 hover:border-teal-400 bg-gradient-to-b from-teal-50/40 via-white to-white',
+      badgeBg: 'bg-teal-600 text-white',
+    },
+    {
+      id: 'retina',
+      name_en: 'Vitreo Retina Services',
+      name_hi: 'विट्रियो रेटिना एवं पर्दा जांच',
+      image: '/images/showcase/c2.png',
+      desc_en: 'Advanced vitreo-retina care. Expert specialists. Preserve your vision. State-of-the-art treatments.',
+      desc_hi: 'अत्याधुनिक विट्रियो-रेटिना केयर। डायबिटीज पर्दा रोग, रेटिनल लेजर एवं दृष्टि सुरक्षा हेतु विशेषज्ञ उपचार।',
+      features_en: ['Green Laser Photocoagulation', 'OCT 3D Macular Evaluation', 'Diabetic Retinopathy Care'],
+      features_hi: ['ग्रीन लेजर फोटोकोएग्यूलेशन', 'ओसीटी 3D मैक्यूला स्कैन', 'डायबिटीज पर्दा जांच व बचाव'],
+      serviceId: 'srv-retina',
+      badge_en: 'Retina Laser',
+      badge_hi: 'रेटिना लेजर',
+      accentColor: 'border-cyan-200 hover:border-cyan-400 bg-gradient-to-b from-cyan-50/40 via-white to-white',
+      badgeBg: 'bg-cyan-600 text-white',
+    },
+    {
+      id: 'glaucoma',
+      name_en: 'Glaucoma Services',
+      name_hi: 'काला मोतिया (ग्लूकोमा) सेवा',
+      image: '/images/showcase/c3.png',
+      desc_en: 'Comprehensive glaucoma care. Experienced specialists. Protect your vision. Advanced treatments.',
+      desc_hi: 'सम्पूर्ण ग्लूकोमा जांच व उपचार। आंख के आंतरिक दबाव (आईओपी) की सटीक जांच व स्थायी अंधापन रोकथाम।',
+      features_en: ['Goldmann Applanation Tonometry', 'Visual Field Perimetry', 'Optic Nerve Monitoring'],
+      features_hi: ['गोल्डमैन एप्लेनेशन टोनोमेट्री', 'विजुअल फील्ड पेरीमेट्री टेस्ट', 'ऑप्टिक नर्व सुरक्षा परामर्श'],
+      serviceId: 'srv-glaucoma',
+      badge_en: 'IOP & Nerve Care',
+      badge_hi: 'काला मोतिया',
+      accentColor: 'border-indigo-200 hover:border-indigo-400 bg-gradient-to-b from-indigo-50/40 via-white to-white',
+      badgeBg: 'bg-indigo-600 text-white',
+    },
+    {
+      id: 'oculoplasty',
+      name_en: 'Oculoplasty Services',
+      name_hi: 'ऑकुलोप्लास्टी एवं पलक शल्य चिकित्सा',
+      image: '/images/showcase/c4.png',
+      desc_en: 'Enhance your eyes and face. Skilled oculoplasty specialists. Aesthetic & functional solutions.',
+      desc_hi: 'आंखों व पलकों की सुंदरता और कार्यप्रणाली का सुधार। पलक का झुकना (पीटोसिस) व अश्रु नली का शल्य उपचार।',
+      features_en: ['Ptosis (Drooping Eyelid) Repair', 'Tear Duct (DCR) Surgery', 'Ophthalmic Aesthetic Solutions'],
+      features_hi: ['झुकी हुई पलक (पीटोसिस) सर्जरी', 'अश्रु नली (DCR) ऑपरेशन', 'नेत्र सौंदर्य व पुनर्निर्माण'],
+      serviceId: 'srv-checkup',
+      badge_en: 'Eyelid Care',
+      badge_hi: 'पलक सर्जरी',
+      accentColor: 'border-purple-200 hover:border-purple-400 bg-gradient-to-b from-purple-50/40 via-white to-white',
+      badgeBg: 'bg-purple-600 text-white',
+    },
+  ];
+
+  // Advanced Diagnostic Technology Platform (Authentic graphics from msmemorialnetralaya.com: circle.png, 2.png, bb.png)
+  const advancedTechShowcase = [
+    {
+      title_en: 'Visual Field Perimetry & Tonometry',
+      title_hi: 'विजुअल फील्ड पेरीमेट्री एवं टोनोमेट्री',
+      image: '/images/showcase/circle.png',
+      tag_en: 'Automated Diagnostic',
+      tag_hi: 'स्वचालित जांच',
+      desc_en: 'High precision computerized visual field evaluation for early detection of glaucoma, optic nerve abnormalities, and neurological visual loss.',
+      desc_hi: 'काला मोतिया (ग्लूकोमा) एवं ऑप्टिक नर्व रोगों की प्रारंभिक पहचान हेतु विश्वस्तरीय स्वचालित विजुअल फील्ड मैपिंग।',
+    },
+    {
+      title_en: 'Digital Retinal Laser & Fundus Imaging',
+      title_hi: 'डिजिटल रेटिना लेजर एवं फंडस इमेजिंग',
+      image: '/images/showcase/2.png',
+      tag_en: 'Precision Retina Suite',
+      tag_hi: 'सटीक रेटिना प्लेटफॉर्म',
+      desc_en: 'State-of-the-art retinal lasers and high-resolution imaging to safeguard vision against diabetic retinopathy, retinal tears, and vein occlusions.',
+      desc_hi: 'डायबिटीज के कारण पर्दे की क्षति, पर्दे में छेद व नसों के अवरोध का लेजर द्वारा तत्काल व सुरक्षित उपचार।',
+    },
+    {
+      title_en: 'Modular Micro-Incision Phaco Surgical Station',
+      title_hi: 'मॉड्यूलर माइक्रो-इंसीजन फेको शल्य चिकित्सा स्टेशन',
+      image: '/images/showcase/bb.png',
+      tag_en: 'Sterile Modular OT',
+      tag_hi: 'अल्ट्रा-क्लीन ओटी',
+      desc_en: 'Zero-stitch, cold-phacoemulsification technology with premium foldable intraocular lens implantation ensuring rapid visual recovery.',
+      desc_hi: 'बिना सुई, बिना टांके व बिना पट्टी का आधुनिक फेको मोतियाबिंद ऑपरेशन — त्वरित रिकवरी एवं स्पष्ट दृष्टि।',
+    },
+  ];
+
+  // Founder & Chief Doctor Specialized Treatments Checklist (Exact 11 treatments provided by user)
+  const founderTreatments = [
+    { en: 'Conjunctivitis Treatment', hi: 'कंजक्टिवाइटिस (आंख आना) उपचार' },
+    { en: 'Retinal Lasers Treatment', hi: 'रेटिना लेजर व पर्दा जांच' },
+    { en: 'Visual Field Test', hi: 'विजुअल फील्ड पेरीमेट्री टेस्ट' },
+    { en: 'Eye Surgery', hi: 'सूक्ष्मदर्शी नेत्र शल्य चिकित्सा' },
+    { en: 'Cornea Disorders Treatment', hi: 'कॉर्निया विकार एवं पुतली रोग' },
+    { en: 'Eye Care Treatment', hi: 'व्यापक नेत्र स्वास्थ्य परामर्श' },
+    { en: 'Foreign Body Eyes Examination', hi: 'आंख में बाहरी कण व चोट परीक्षण' },
+    { en: 'Glaucoma Treatment', hi: 'काला मोतिया (ग्लूकोमा) उपचार' },
+    { en: 'Vision Check Up', hi: 'कंप्यूटरीकृत नजर व चश्मा जांच' },
+    { en: 'LASIK Surgery', hi: 'लेसिक एवं चश्मा मुक्ति परामर्श' },
+    { en: 'Eyelid Surgery', hi: 'पलक एवं ऑकुलोप्लास्टी सर्जरी' },
+  ];
+
   return (
     <div className="relative min-h-screen space-y-12 pb-16 overflow-hidden">
       {/* 0. AMBIENT HOSPITAL ARCHITECTURAL BACKGROUND WATERMARK FOR LANDING PAGE */}
@@ -550,7 +665,7 @@ export default function HomePage({ params }: { params: { locale: string } }) {
         </div>
       </ScrollZoomOut>
 
-      {/* 3. ABOUT HOSPITAL & FOUNDER SHOWCASE */}
+      {/* 3. ABOUT HOSPITAL & WELCOME SHOWCASE */}
       <ScrollZoomOut amount={0.15} scaleFrom={1.06} duration={0.7} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="surface-card rounded-2xl shadow-card border border-hospitalBorder p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
@@ -627,7 +742,332 @@ export default function HomePage({ params }: { params: { locale: string } }) {
         </div>
       </ScrollZoomOut>
 
-      {/* 4. HOSPITAL EYE SERVICES (2X PASSPORT PHOTOS & AUTO-FLOATING TRACK) */}
+      {/* 4. HOSPITAL HONOUR & FOUNDER SHOWCASE — DR. MADHAV MUKUND */}
+      <ScrollZoomOut amount={0.15} scaleFrom={1.06} duration={0.7} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="surface-card rounded-3xl shadow-2xl border-2 border-primary/20 overflow-hidden bg-gradient-to-b from-white via-[#F8FBFE] to-white">
+          {/* Top Banner Ribbon */}
+          <div className="bg-gradient-to-r from-[#071E3D] via-primary to-[#071E3D] text-white px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center space-x-2.5">
+              <span className="p-1.5 bg-amber-400 text-slate-900 rounded-lg shadow font-extrabold text-sm">👑</span>
+              <div>
+                <span className="text-xs font-extrabold uppercase tracking-widest text-cyan-200 block">
+                  {locale === 'hi' ? 'अस्पताल संस्थापक एवं मुख्य सम्मान' : 'Hospital Honour & Chief Ophthalmologist'}
+                </span>
+                <span className="text-sm sm:text-base font-bold text-white">
+                  {locale === 'hi' ? 'डॉ० माधव मुकुंद — वरिष्ठ नेत्र रोग विशेषज्ञ (आई सर्जन)' : 'Dr. Madhav Mukund — Senior Ophthalmologist & Eye Surgeon'}
+                </span>
+              </div>
+            </div>
+            <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-cyan-100 border border-white/20">
+              <BadgeCheck className="w-4 h-4 text-emerald-400" />
+              <span>{locale === 'hi' ? '16+ वर्षों का क्लिनिकल अनुभव' : '16+ Years Clinical Excellence'}</span>
+            </div>
+          </div>
+
+          <div className="p-6 sm:p-10 space-y-8">
+            {/* Top Grid: Founder Portrait & Full Profile + Clinical Exam Photo */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              
+              {/* Left Column: Direct Doctor Portrait & Bio */}
+              <div className="lg:col-span-7 space-y-5">
+                <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center">
+                  <div className="relative shrink-0 mx-auto sm:mx-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/images/founder/dr-madhav-mukund-portrait.png"
+                      alt="Dr Madhav Mukund - Hospital Founder"
+                      className="w-36 h-36 sm:w-44 sm:h-44 object-cover object-top rounded-2xl border-4 border-white shadow-xl ring-2 ring-primary/30"
+                    />
+                    <div className="absolute -bottom-2 -right-2 bg-emerald-600 text-white p-1.5 rounded-full shadow-lg border-2 border-white" title="Verified Specialist">
+                      <BadgeCheck className="w-5 h-5" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 text-center sm:text-left flex-1">
+                    <div className="inline-flex items-center space-x-1.5 bg-primary/10 text-primary px-3 py-0.5 rounded-full text-xs font-extrabold">
+                      <Stethoscope className="w-3.5 h-3.5" />
+                      <span>{locale === 'hi' ? 'संस्थापक एवं मुख्य निदेशक' : 'Founder & Managing Director'}</span>
+                    </div>
+                    <h3 className="text-2xl sm:text-3xl font-extrabold text-primary-dark">
+                      Dr. Madhav Mukund <span className="text-sm font-semibold text-gray-500 block sm:inline">({locale === 'hi' ? 'डॉ० माधव मुकुंद' : 'MBBS, MS'})</span>
+                    </h3>
+                    <p className="text-xs sm:text-sm font-bold text-accent">
+                      {locale === 'hi'
+                        ? 'MBBS (KGMC लखनऊ), MS (GSVM कानपुर) • वरिष्ठ नेत्र रोग विशेषज्ञ'
+                        : 'MBBS (KGMC Lucknow), MS (GSVM Kanpur) • Renowned Ophthalmologist'}
+                    </p>
+                    <p className="text-xs text-mutedText flex items-center justify-center sm:justify-start gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <span>{locale === 'hi' ? 'जन सेवा अस्पताल, बड़हलगंज बाईपास, वाराणसी एवं एम एस मेमोरियल नेत्रालय, दिलदारनगर' : 'Jan Sewa Hospital, Barhalganj Bypass Rd, Varanasi & M S Memorial Netralaya'}</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Complete Detailed Bio Provided by User */}
+                <div className="bg-hospitalBg p-4 sm:p-5 rounded-2xl border border-gray-200 text-xs sm:text-sm text-hospitalText leading-relaxed space-y-2.5">
+                  <p>
+                    {locale === 'hi' ? (
+                      <>
+                        <strong className="text-primary-dark font-extrabold">डॉ० माधव मुकुंद (MBBS, MS)</strong> वाराणसी एवं पूर्वांचल के सुप्रसिद्ध व प्रतिष्ठित नेत्र रोग विशेषज्ञ (आई स्पेशलिस्ट) हैं। वे <strong className="text-primary-dark">जन सेवा अस्पताल</strong> (बड़हलगंज बाईपास रोड, यूनियन बैंक के पास, वाराणसी) में अपनी नियमित ओपीडी सेवाएं देते हैं तथा <strong className="text-primary-dark">एम एस मेमोरियल नेत्रालय (दिलदारनगर, गाजीपुर)</strong> के संस्थापक निदेशक हैं।
+                      </>
+                    ) : (
+                      <>
+                        <strong className="text-primary-dark font-extrabold">Dr Madhav Mukund, MBBS, MS</strong> is a Varanasi based renowned Ophthalmologist (Eye Specialist). He practices at Jan Sewa Hospital located at Barhalganj Bypass Road, Near Union Bank, Varanasi and directs M S Memorial Netralaya, Dildarnagar.
+                      </>
+                    )}
+                  </p>
+                  <p className="text-mutedText">
+                    {locale === 'hi'
+                      ? 'वे सभी प्रकार के नेत्र रोगों के उपचार में अत्यंत अनुभवी, प्रशिक्षित व उच्च कुशल नेत्र सर्जन हैं। उनके पास उच्च स्तरीय नेत्र चिकित्सा प्रदान करने का कई वर्षों का सफल अनुभव है। प्रमुख रोग जिनके उपचार में उन्हें विशिष्ट दक्षता प्राप्त है: नेत्र जांच, नेत्र देखभाल, काला मोतिया (ग्लूकोमा), मोतियाबिंद (फेको सर्जरी), दृष्टिहीनता निवारण, मैक्यूलर डिजनरेशन, कंजक्टिवाइटिस (आंख आना), लाली-जलन, ड्राय आई सिंड्रोम आदि।'
+                      : 'He is highly experienced, trained and skilled eye specialist treating all types of eye diseases. He has many years of experience in providing famed eye treatment. Some of the top eye diseases he is specialized in treating are eye checkup, eye care, glaucoma, cataract, eye blindness, macular degeneration, conjunctivitis, irritation, dry eye syndrome, etc.'}
+                  </p>
+                  <p className="text-[11px] text-primary-dark font-medium pt-1 border-t border-gray-200/80">
+                    {locale === 'hi'
+                      ? '💡 आप डॉ० माधव मुकुंद से ऑनलाइन परामर्श व टोकन सीधे हमारे पोर्टल या Doctoriduniya.com के माध्यम से बुक कर सकते हैं।'
+                      : '💡 You can book an online appointment with Dr Madhav Mukund, top Ophthalmologist in Varanasi at Doctoriduniya.com or directly via our digital token portal below.'}
+                  </p>
+                </div>
+
+                {/* Direct Action Buttons */}
+                <div className="flex flex-wrap gap-3 pt-1">
+                  <Link
+                    href={`/${locale}/appointment?doctor=doc-1`}
+                    className="bg-primary hover:bg-primary-dark text-white font-extrabold px-5 py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center"
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    {locale === 'hi' ? 'डॉ० माधव मुकुंद से परामर्श बुक करें' : 'Book Appointment with Dr. Madhav Mukund'}
+                  </Link>
+                  <a
+                    href="tel:+918004800688"
+                    className="bg-gray-100 hover:bg-gray-200 text-primary-dark font-bold px-4 py-3 rounded-xl text-xs sm:text-sm border border-gray-200 transition flex items-center"
+                  >
+                    📞 +91 80048 00688
+                  </a>
+                </div>
+              </div>
+
+              {/* Right Column: In-Practice Slit Lamp Examination Photo */}
+              <div className="lg:col-span-5 space-y-3">
+                <div className="bg-white p-3 rounded-2xl border-2 border-primary/20 shadow-xl overflow-hidden group">
+                  <div className="relative w-full aspect-square max-w-[340px] mx-auto rounded-2xl overflow-hidden bg-slate-900">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/images/founder/dr-madhav-mukund-exam.png"
+                      alt="Dr Madhav Mukund examining patient on slit lamp"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent pointer-events-none" />
+                    <span className="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow flex items-center animate-pulse">
+                      <span className="w-2 h-2 rounded-full bg-white mr-1.5"></span>
+                      {locale === 'hi' ? 'प्रत्यक्ष नेत्र जांच' : 'Clinical Slit-Lamp Exam'}
+                    </span>
+                    <div className="absolute bottom-3 left-3 right-3 text-white text-xs">
+                      <p className="font-extrabold leading-tight">
+                        {locale === 'hi' ? 'सूक्ष्मदर्शी परीक्षण (स्लिट-लैम्प बायोमाइक्रोस्कोपी)' : 'High Precision Slit-Lamp Biomicroscopy'}
+                      </p>
+                      <p className="text-[11px] text-cyan-200 mt-0.5">
+                        {locale === 'hi' ? 'कॉर्निया, पुतली, लेंस एवं रेटिना की गहन सूक्ष्म जांच' : 'Cornea, lens, and retinal anterior segment examination'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Bottom Grid: 11 Specialized Treatments Checklist (Exact user list) */}
+            <div className="pt-6 border-t border-gray-200 space-y-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div>
+                  <h4 className="font-extrabold text-base sm:text-lg text-primary-dark flex items-center">
+                    <Sparkles className="w-4 h-4 mr-2 text-accent" />
+                    {locale === 'hi' ? 'डॉ० माधव मुकुंद द्वारा विशिष्ट उपचार एवं शल्य चिकित्सा सेवाएं' : 'Specialized Treatments & Surgical Procedures by Dr. Madhav Mukund'}
+                  </h4>
+                  <p className="text-xs text-mutedText mt-0.5">
+                    {locale === 'hi' ? 'आधुनिकतम फेको, लेजर एवं डायग्नोस्टिक विधियों से सुरक्षित व सफल उपचार' : 'Advanced ophthalmic treatments provided with international surgical standards.'}
+                  </p>
+                </div>
+                <span className="text-xs font-bold text-accent bg-accent/10 px-3 py-1 rounded-full">
+                  11 {locale === 'hi' ? 'विशेष उपचार' : 'Core Procedures'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {founderTreatments.map((treatment, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-white hover:bg-primary hover:text-white p-3 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 group flex items-center space-x-2.5 cursor-pointer"
+                  >
+                    <span className="text-accent group-hover:text-amber-300 font-mono font-extrabold text-sm shrink-0 transition">
+                      &gt;&gt;
+                    </span>
+                    <span className="text-xs font-bold text-hospitalText group-hover:text-white transition">
+                      {locale === 'hi' ? treatment.hi : treatment.en}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </ScrollZoomOut>
+
+      {/* 5. OFFICIAL CORE SPECIALTIES (CARDS WITH c1.png, c2.png, c3.png, c4.png) */}
+      <ScrollZoomOut amount={0.12} scaleFrom={1.05} duration={0.7} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
+          <div>
+            <div className="inline-flex items-center space-x-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold mb-2">
+              <Layers className="w-3.5 h-3.5" />
+              <span>{locale === 'hi' ? 'प्रमुख नेत्र चिकित्सा केंद्र' : 'Official Hospital Specialties'}</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-primary-dark tracking-tight">
+              {locale === 'hi' ? 'विश्वस्तरीय सुपर-स्पेशलिटी नेत्र विभाग' : 'Key Clinical Specialties & Departments'}
+            </h2>
+            <p className="text-xs sm:text-sm text-mutedText mt-1">
+              {locale === 'hi'
+                ? 'एम एस मेमोरियल नेत्रालय के चार मुख्य विभाग — आयातित फेको, रेटिना लेजर, ग्लूकोमा व पलक शल्य चिकित्सा।'
+                : 'Advanced sub-specialty clinics equipped with precision German lasers and micro-incision technology.'}
+            </p>
+          </div>
+
+          <Link
+            href={`/${locale}/services`}
+            className="text-xs font-bold text-primary hover:underline flex items-center"
+          >
+            {messages.common.viewDetails} <ChevronRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {coreSpecialties.map((spec) => (
+            <div
+              key={spec.id}
+              className={`rounded-2xl shadow-card hover:shadow-2xl transition-all duration-300 p-5 flex flex-col justify-between border-2 hover:-translate-y-2 group ${spec.accentColor}`}
+            >
+              <div className="space-y-4">
+                {/* Header Badge */}
+                <div className="flex justify-between items-center">
+                  <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-sm ${spec.badgeBg}`}>
+                    {locale === 'hi' ? spec.badge_hi : spec.badge_en}
+                  </span>
+                  <span className="text-[11px] font-bold text-gray-400 group-hover:text-primary transition">
+                    M S Netralaya
+                  </span>
+                </div>
+
+                {/* Authentic Graphic Icon */}
+                <div className="w-24 h-24 sm:w-28 sm:h-28 mx-auto relative flex items-center justify-center p-2 rounded-2xl bg-white/80 shadow-inner group-hover:scale-110 transition-transform duration-300">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={spec.image}
+                    alt={locale === 'hi' ? spec.name_hi : spec.name_en}
+                    className="w-full h-full object-contain filter drop-shadow-md"
+                  />
+                </div>
+
+                {/* Title and Description */}
+                <div className="text-center space-y-1.5">
+                  <h3 className="font-extrabold text-base text-primary-dark group-hover:text-primary transition leading-tight">
+                    {locale === 'hi' ? spec.name_hi : spec.name_en}
+                  </h3>
+                  <p className="text-xs text-mutedText leading-relaxed">
+                    {locale === 'hi' ? spec.desc_hi : spec.desc_en}
+                  </p>
+                </div>
+
+                {/* Features List */}
+                <div className="pt-2 border-t border-gray-100 space-y-1.5">
+                  {(locale === 'hi' ? spec.features_hi : spec.features_en).map((feat, fIdx) => (
+                    <div key={fIdx} className="flex items-center text-[11px] text-hospitalText">
+                      <Check className="w-3.5 h-3.5 text-emerald-600 mr-1.5 shrink-0" />
+                      <span className="truncate">{feat}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <div className="pt-4 mt-2">
+                <Link
+                  href={`/${locale}/appointment?service=${spec.serviceId}`}
+                  className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-2 rounded-xl text-xs text-center block transition shadow-sm group-hover:shadow"
+                >
+                  {messages.common.bookAppointment} →
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      </ScrollZoomOut>
+
+      {/* 6. ADVANCED OPHTHALMIC TECHNOLOGY & DIAGNOSTICS (bb.png, 2.png, circle.png) */}
+      <ScrollZoomOut amount={0.12} scaleFrom={1.05} duration={0.7} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
+          <div>
+            <div className="inline-flex items-center space-x-1.5 bg-accent/10 text-accent px-3 py-1 rounded-full text-xs font-bold mb-2">
+              <Zap className="w-3.5 h-3.5" />
+              <span>{locale === 'hi' ? 'आधुनिकतम तकनीकी उपकरण' : 'Cutting-Edge Ophthalmic Equipment'}</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-primary-dark tracking-tight">
+              {locale === 'hi' ? 'आयातित जर्मन एवं जापानी नेत्र परीक्षण प्लेटफॉर्म' : 'State-Of-The-Art Diagnostic & Surgical Suites'}
+            </h2>
+            <p className="text-xs sm:text-sm text-mutedText mt-1">
+              {locale === 'hi'
+                ? 'सटीक निदान, त्वरित लेजर उपचार और सुरक्षित फेको सर्जरी हेतु विश्वस्तरीय मशीनें।'
+                : 'Advanced automated visual field mapping, high-definition retinal lasers, and ultra-sterile phaco suites.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {advancedTechShowcase.map((tech, tIdx) => (
+            <div
+              key={tIdx}
+              className="surface-card rounded-2xl shadow-card hover:shadow-2xl transition-all duration-300 border border-hospitalBorder overflow-hidden group hover:-translate-y-1.5 flex flex-col justify-between"
+            >
+              <div className="relative h-48 w-full overflow-hidden bg-slate-900 flex items-center justify-center p-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={tech.image}
+                  alt={locale === 'hi' ? tech.title_hi : tech.title_en}
+                  className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-500 filter drop-shadow-lg"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                <span className="absolute top-3 left-3 bg-primary-dark/90 backdrop-blur-md text-cyan-200 text-[10px] font-extrabold px-3 py-1 rounded-full border border-white/20">
+                  {locale === 'hi' ? tech.tag_hi : tech.tag_en}
+                </span>
+                <div className="absolute bottom-3 left-3 right-3 text-white">
+                  <h3 className="font-extrabold text-sm sm:text-base leading-tight">
+                    {locale === 'hi' ? tech.title_hi : tech.title_en}
+                  </h3>
+                </div>
+              </div>
+
+              <div className="p-5 space-y-3 flex-1 flex flex-col justify-between bg-white">
+                <p className="text-xs text-mutedText leading-relaxed">
+                  {locale === 'hi' ? tech.desc_hi : tech.desc_en}
+                </p>
+
+                <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-accent flex items-center">
+                    <ShieldCheck className="w-3.5 h-3.5 mr-1 text-emerald-600" />
+                    {locale === 'hi' ? 'सत्यापित उपकरण' : 'Certified Equipment'}
+                  </span>
+                  <Link
+                    href={`/${locale}/appointment`}
+                    className="text-xs font-bold text-primary hover:underline flex items-center"
+                  >
+                    {locale === 'hi' ? 'जांच बुक करें' : 'Book Scan'} <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </ScrollZoomOut>
+
+      {/* 7. HOSPITAL EYE SERVICES (2X PASSPORT PHOTOS & AUTO-FLOATING TRACK) */}
       <ScrollZoomOut amount={0.12} scaleFrom={1.05} duration={0.7} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
           <div>
