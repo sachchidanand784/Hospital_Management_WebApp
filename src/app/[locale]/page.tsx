@@ -465,7 +465,7 @@ export default function HomePage({ params }: { params: { locale: string } }) {
   ];
 
   return (
-    <div className="relative min-h-screen space-y-12 pb-16 overflow-hidden">
+    <div className="relative min-h-screen pb-16 overflow-hidden">
       {/* 0. AMBIENT HOSPITAL ARCHITECTURAL BACKGROUND WATERMARK FOR LANDING PAGE */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -518,6 +518,52 @@ export default function HomePage({ params }: { params: { locale: string } }) {
                 ? 'दिलदारनगर (गाजीपुर) का विश्वसनीय नेत्र अस्पताल — बिना टांके का फेको मोतियाबिंद ऑपरेशन, विट्रियो-रेटिना लेजर व डिजिटल टोकन परामर्श।'
                 : messages.home.heroSubtitle}
             </p>
+
+            {/* Founder & Hospital Honour Spotlight Card (Opposite to Token Display) */}
+            <a
+              href="#honour-founder"
+              className="group block bg-gradient-to-r from-white/15 via-white/10 to-transparent hover:from-white/20 hover:to-white/15 backdrop-blur-md p-3 sm:p-3.5 rounded-2xl border border-white/20 hover:border-amber-300/60 shadow-xl transition-all max-w-xl"
+            >
+              <div className="flex items-center gap-3.5 sm:gap-4">
+                <div className="relative w-16 h-20 sm:w-20 sm:h-24 shrink-0 rounded-xl overflow-hidden border-2 border-amber-300/90 shadow-lg group-hover:scale-105 transition-transform duration-300">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/images/founder/dr-madhav-mukund-portrait.png"
+                    alt="Dr. Madhav Mukund"
+                    className="w-full h-full object-cover object-top"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-primary/95 text-[9px] font-extrabold text-center text-amber-200 py-0.5 tracking-wider shadow">
+                    HONOUR
+                  </div>
+                </div>
+                <div className="space-y-1 text-left min-w-0 flex-1">
+                  <div className="inline-flex items-center gap-1.5 bg-amber-400/20 text-amber-300 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full border border-amber-400/40">
+                    <Sparkles className="w-3 h-3 text-amber-300 shrink-0" />
+                    <span>{locale === 'hi' ? 'अस्पताल के मुख्य संरक्षक व संस्थापक' : 'Hospital Honour & Chief Founder'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-base sm:text-lg font-extrabold text-white leading-tight group-hover:text-amber-200 transition">
+                      Dr. Madhav Mukund
+                    </h3>
+                    <span className="text-[10px] sm:text-[11px] text-emerald-300 font-semibold bg-emerald-500/20 px-1.5 py-0.2 rounded border border-emerald-400/30">
+                      MBBS, MS
+                    </span>
+                    <BadgeCheck className="w-4 h-4 text-emerald-400 inline shrink-0" />
+                  </div>
+                  <p className="text-xs text-cyan-100 font-medium leading-snug">
+                    {locale === 'hi'
+                      ? 'वरिष्ठ नेत्र रोग विशेषज्ञ व आई सर्जन (Varanasi / Ghazipur)'
+                      : 'Renowned Senior Eye Specialist & Surgeon (Varanasi / Ghazipur)'}
+                  </p>
+                  <p className="text-[11px] text-gray-300 flex items-center justify-between gap-1">
+                    <span>{locale === 'hi' ? 'फेको मोतियाबिंद, ग्लूकोमा व रेटिना रोग विशेषज्ञ' : 'Phaco Cataract, Glaucoma & Vitreo-Retina Specialist'}</span>
+                    <span className="text-amber-300 font-bold text-[10px] group-hover:translate-x-1 transition-transform inline-flex items-center gap-0.5 shrink-0">
+                      {locale === 'hi' ? 'विस्तार से' : 'Details'} <ChevronRight className="w-3 h-3" />
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </a>
 
             {/* Dynamic Free OPD Banner */}
             {hospital.freeCheckupEnabled !== false && (
@@ -744,7 +790,7 @@ export default function HomePage({ params }: { params: { locale: string } }) {
 
       {/* 4. HOSPITAL HONOUR & FOUNDER SHOWCASE — DR. MADHAV MUKUND */}
       <ScrollZoomOut amount={0.15} scaleFrom={1.06} duration={0.7} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="surface-card rounded-3xl shadow-2xl border-2 border-primary/20 overflow-hidden bg-gradient-to-b from-white via-[#F8FBFE] to-white">
+        <div id="honour-founder" className="surface-card rounded-3xl shadow-2xl border-2 border-primary/20 overflow-hidden bg-gradient-to-b from-white via-[#F8FBFE] to-white scroll-mt-28">
           {/* Top Banner Ribbon */}
           <div className="bg-gradient-to-r from-[#071E3D] via-primary to-[#071E3D] text-white px-6 py-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center space-x-2.5">
